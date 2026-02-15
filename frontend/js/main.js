@@ -95,7 +95,7 @@ function createSemesterElement(semester) {
  */
 function createCourseElement(course) {
     const savedGrade = selectedGrades[course.id] || '';
-
+    const grades = ['', 'AA', 'BA', 'BB', 'CB', 'CC', 'DC', 'DD', 'FD', 'FF'];
     return `
         <div class="course-item" 
              draggable="true" 
@@ -107,20 +107,9 @@ function createCourseElement(course) {
                 <div class="course-name">${course.courseName}</div>
                 <div class="course-credits">${course.credit} Kredi • ${course.ects} ECTS</div>
             </div>
-            <select class="grade-select" 
-                    data-course-id="${course.id}"
-                    onchange="onGradeChange('${course.id}', this.value)"
-                    onclick="event.stopPropagation()">
-                <option value="">Seç</option>
-                <option value="AA" ${savedGrade === 'AA' ? 'selected' : ''}>AA</option>
-                <option value="BA" ${savedGrade === 'BA' ? 'selected' : ''}>BA</option>
-                <option value="BB" ${savedGrade === 'BB' ? 'selected' : ''}>BB</option>
-                <option value="CB" ${savedGrade === 'CB' ? 'selected' : ''}>CB</option>
-                <option value="CC" ${savedGrade === 'CC' ? 'selected' : ''}>CC</option>
-                <option value="DC" ${savedGrade === 'DC' ? 'selected' : ''}>DC</option>
-                <option value="DD" ${savedGrade === 'DD' ? 'selected' : ''}>DD</option>
-                <option value="FD" ${savedGrade === 'FD' ? 'selected' : ''}>FD</option>
-                <option value="FF" ${savedGrade === 'FF' ? 'selected' : ''}>FF</option>
+            <select class="grade-select" onclick="event.stopPropagation()" 
+                    onchange="onGradeChange('${course.id}', this.value); highlightGradeRow(this.value);">
+                ${grades.map(g => `<option value="${g}" ${savedGrade === g ? 'selected' : ''}>${g || '—'}</option>`).join('')}
             </select>
         </div>
     `;
@@ -140,8 +129,12 @@ function toggleSemester(semesterId) {
  * Ders seçildiğinde (tıklandığında)
  */
 function selectCourse(courseId) {
-    // Dersi sağ panelde göster
+    // Dersi orta panelde göster
     loadCourseDetail(courseId);
+    // Sağ paneldeki harf aralıklarını güncelle
+    updateGradeScale(courseId);
+    // Sağ alt paneldeki yorumları yükle
+    loadComments(courseId);
 }
 
 /**
@@ -249,6 +242,46 @@ function showEmptyState() {
     container.innerHTML = `
         <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
             <p>Bu bölüm için henüz ders bilgisi eklenmemiş.</p>
+        </div>
+    `;
+}
+
+function updateGradeScale(courseId) {
+    const container = document.getElementById('grade-scale-content');
+    if (!container) return;
+
+    // Yeni veri yapısından skaları al
+    const scaleList = MOCK_DATA.gradeScales[courseId] || [];
+
+    if (scaleList.length > 0) {
+        // İlk skalayı yükle (kullanıcı orta panelden değiştirebilir)
+        loadScaleToRightPanel(scaleList[0]);
+    } else {
+        // Varsayılan skalayı göster
+        loadScaleToRightPanel({
+            label: 'Varsayılan',
+            scale: MOCK_DATA.defaultGradeScale,
+            totalStudents: null
+        });
+    }
+}
+
+/**
+ * Harf aralıklarını sıfırlar (ders kapatıldığında)
+ */
+function resetGradeScale() {
+    const container = document.getElementById('grade-scale-content');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="grade-scale-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"
+                style="opacity: 0.3; margin-bottom: 0.5rem;">
+                <path d="M4 7V4h16v3" />
+                <path d="M9 20h6" />
+                <path d="M12 4v16" />
+            </svg>
+            <p>Ders seçildiğinde harf aralıkları burada görünecek.</p>
         </div>
     `;
 }

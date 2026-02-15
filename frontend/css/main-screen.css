@@ -6,121 +6,113 @@
     overflow: hidden;
 }
 
-/* ==================== HEADER ==================== */
+/* ==================== TOP HEADER ==================== */
 .top-header {
+    padding: 0.5rem 1.25rem;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
-    padding: var(--spacing-md) var(--spacing-lg);
-    box-shadow: var(--shadow-md);
     z-index: 100;
+    flex-shrink: 0;
 }
 
 .header-content {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    max-width: 1600px;
+    justify-content: space-between;
+    max-width: 1920px;
     margin: 0 auto;
+    gap: 1rem;
 }
 
 .header-left {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: 0.625rem;
+    min-width: 0;
 }
 
 .header-icon {
-    width: 40px;
-    height: 40px;
+    width: 28px;
+    height: 28px;
     color: var(--primary-light);
+    flex-shrink: 0;
 }
 
 .header-title {
-    font-size: 1.5rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--text-primary);
     margin: 0;
+    white-space: nowrap;
 }
 
 .header-subtitle {
-    font-size: 0.875rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 260px;
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
-}
-
-.gpa-display {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(99, 102, 241, 0.3);
-}
-
-.gpa-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.gpa-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--primary-light), var(--secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    gap: 0.75rem;
+    flex-shrink: 0;
 }
 
 .btn-back {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: var(--bg-dark);
+    gap: 0.25rem;
+    padding: 0.3rem 0.75rem;
+    background: transparent;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 0.75rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition-base);
+    transition: all var(--transition-fast);
 }
 
 .btn-back svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
 }
 
 .btn-back:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--primary);
-    color: var(--primary-light);
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
 }
 
-/* ==================== MAIN CONTAINER ==================== */
+.gpa-display-large {
+    text-align: center;
+}
+
+/* ==================== 3-COLUMN GRID SYSTEM ==================== */
 .main-container {
     display: grid;
-    grid-template-columns: 400px 1fr;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg);
-    max-width: 1600px;
+    grid-template-columns: 320px 1fr 340px;
+    /* Sol, Orta, Sağ */
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    max-width: 1920px;
+    /* Büyük ekranlar için */
     margin: 0 auto;
     width: 100%;
-    height: calc(100vh - 80px);
+    height: calc(100vh - 56px);
+    /* Kompakt header yüksekliği */
     overflow: hidden;
 }
 
-/* ==================== LEFT PANEL ==================== */
-.left-panel {
+/* ==================== GENERIC PANEL STYLES ==================== */
+.left-panel,
+.center-panel,
+.right-panel {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
@@ -128,28 +120,34 @@
     flex-direction: column;
     overflow: hidden;
     box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
 }
 
 .panel-header {
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-md);
     border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: var(--bg-card);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .panel-header h2 {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
 }
 
+/* ==================== LEFT PANEL (Ders Listesi) ==================== */
 .course-count {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     background: var(--bg-dark);
-    padding: 0.25rem 0.75rem;
+    padding: 0.25rem 0.5rem;
     border-radius: var(--radius-sm);
 }
 
@@ -157,49 +155,28 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--spacing-sm);
-}
-
-/* Custom scrollbar */
-.semester-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.semester-list::-webkit-scrollbar-track {
-    background: var(--bg-dark);
-    border-radius: var(--radius-sm);
-}
-
-.semester-list::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: var(--radius-sm);
-}
-
-.semester-list::-webkit-scrollbar-thumb:hover {
-    background: var(--primary);
+    /* Custom scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg-dark);
 }
 
 /* ==================== SEMESTER ACCORDION ==================== */
 .semester-accordion {
-    margin-bottom: var(--spacing-sm);
-    background: var(--bg-dark);
+    margin-bottom: 0.5rem;
     border-radius: var(--radius-md);
     overflow: hidden;
     border: 1px solid var(--border);
-    transition: all var(--transition-base);
-}
-
-.semester-accordion:hover {
-    border-color: var(--primary);
 }
 
 .semester-header {
-    padding: var(--spacing-md);
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    background: var(--bg-dark);
     cursor: pointer;
-    user-select: none;
     transition: background var(--transition-fast);
+    user-select: none;
 }
 
 .semester-header:hover {
@@ -207,55 +184,49 @@
 }
 
 .toggle-icon {
-    font-size: 0.875rem;
+    font-size: 0.625rem;
     color: var(--text-muted);
     transition: transform var(--transition-base);
-    width: 20px;
-    text-align: center;
+    flex-shrink: 0;
 }
 
 .semester-accordion.open .toggle-icon {
     transform: rotate(90deg);
-    color: var(--primary-light);
 }
 
 .semester-name {
     flex: 1;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-primary);
 }
 
 .semester-badge {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
     background: var(--bg-card);
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--radius-sm);
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
 }
 
 .course-list {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height var(--transition-slow);
+    display: none;
+    background: var(--bg-card);
 }
 
 .semester-accordion.open .course-list {
-    max-height: 1000px;
+    display: block;
 }
 
 /* ==================== COURSE ITEM ==================== */
 .course-item {
-    padding: var(--spacing-md);
-    border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    cursor: grab;
-    transition: all var(--transition-base);
-}
-
-.course-item:active {
-    cursor: grabbing;
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    gap: 0.5rem;
 }
 
 .course-item:hover {
@@ -266,43 +237,68 @@
     opacity: 0.5;
 }
 
+.course-item.active {
+    background: rgba(99, 102, 241, 0.1);
+    border-left: 3px solid var(--primary);
+}
+
 .course-drag-handle {
     color: var(--text-muted);
-    font-size: 1.25rem;
+    font-size: 0.75rem;
+    opacity: 0.4;
+    cursor: grab;
+    flex-shrink: 0;
+    letter-spacing: 1px;
+}
+
+.course-item:hover .course-drag-handle {
+    opacity: 0.8;
 }
 
 .course-info {
     flex: 1;
+    min-width: 0;
 }
 
 .course-code {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    font-size: 0.7rem;
+    color: var(--primary-light);
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .course-name {
-    font-weight: 500;
+    font-size: 0.8rem;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .course-credits {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
 }
 
+/* ==================== GRADE SELECT DROPDOWN ==================== */
 .grade-select {
-    padding: 0.5rem;
-    background: var(--bg-card);
+    padding: 0.25rem 0.4rem;
+    background: var(--bg-dark);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: inherit;
     cursor: pointer;
-    transition: all var(--transition-base);
-    min-width: 80px;
+    transition: all var(--transition-fast);
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 48px;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .grade-select:hover {
@@ -311,22 +307,65 @@
 
 .grade-select:focus {
     outline: none;
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 
-/* ==================== RIGHT PANEL ==================== */
-.right-panel {
+.grade-select option {
     background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
+    color: var(--text-primary);
+}
+
+/* ==================== LOADING SKELETON ==================== */
+.loading-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.5rem;
+}
+
+.skeleton-item {
+    height: 48px;
+    background: linear-gradient(90deg, var(--bg-dark) 25%, var(--bg-card-hover) 50%, var(--bg-dark) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-md);
+}
+
+/* ==================== EMPTY STATE ==================== */
+.empty-comments {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* ==================== DRAG-OVER STATE ==================== */
+.drop-zone.drag-over {
+    background: rgba(99, 102, 241, 0.05);
+    border: 2px dashed var(--primary);
+    border-radius: var(--radius-md);
+}
+
+/* ==================== CENTER PANEL (Hesaplama) ==================== */
+.center-panel {
+    background: var(--bg-dark);
+    /* Ortadaki alan biraz daha ayrıksı dursun */
+    border: none;
+    /* Border'ı kaldırıp shadow ile yükseltelim */
+    box-shadow: var(--shadow-lg);
 }
 
 .drop-zone {
     height: 100%;
     overflow-y: auto;
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
 }
 
 .drop-zone-placeholder {
@@ -335,81 +374,604 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--spacing-xl);
     text-align: center;
+    opacity: 0.7;
 }
 
 .placeholder-icon {
-    width: 80px;
-    height: 80px;
+    width: 64px;
+    height: 64px;
     color: var(--text-muted);
-    opacity: 0.5;
     margin-bottom: var(--spacing-md);
 }
 
-.drop-zone-placeholder h3 {
-    font-size: 1.5rem;
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-xs);
+/* ==================== RIGHT PANEL (Split Layout) ==================== */
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
-.drop-zone-placeholder p {
+.right-sub-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.grade-scale-panel {
+    flex: 0 0 auto;
+    max-height: 45%;
+    border-bottom: 1px solid var(--border);
+}
+
+.comments-sub-panel {
+    flex: 1;
+    min-height: 0;
+}
+
+/* ==================== GRADE SCALE CONTENT ==================== */
+.grade-scale-content {
+    overflow-y: auto;
+    padding: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg-dark);
+}
+
+.grade-scale-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0.5rem;
+    text-align: center;
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
 }
 
-.drop-zone.drag-over {
+.grade-scale-table {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.grade-row {
+    display: flex;
+    align-items: center;
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-dark);
+    transition: background var(--transition-fast);
+    gap: 0.5rem;
+}
+
+.grade-row:hover {
+    background: var(--bg-card-hover);
+}
+
+.grade-row.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-left: 3px solid var(--primary);
+}
+
+.grade-letter {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 28px;
+}
+
+.grade-range {
+    flex: 1;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.grade-gpa {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--primary-light);
+    background: rgba(99, 102, 241, 0.1);
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-sm);
+}
+
+.grade-student-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-card);
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 30px;
+}
+
+.grade-bar-fill {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.grade-student-count {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    min-width: 18px;
+    text-align: right;
+}
+
+/* ==================== COMMENTS ==================== */
+.comments-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg-dark);
+    position: relative;
+}
+
+.empty-comments {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0.5rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Sıralama butonu */
+.btn-sort-comments {
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all var(--transition-fast);
+}
+
+.btn-sort-comments:hover {
     border-color: var(--primary);
-    background: rgba(99, 102, 241, 0.05);
+    background: var(--bg-card-hover);
 }
 
-.drop-zone.drag-over .drop-zone-placeholder {
-    transform: scale(1.05);
-    transition: transform var(--transition-base);
-}
-
-/* ==================== LOADING SKELETON ==================== */
-.loading-skeleton {
-    padding: var(--spacing-md);
-}
-
-.skeleton-item {
-    height: 60px;
-    background: linear-gradient(90deg,
-            var(--bg-dark) 0%,
-            var(--bg-card-hover) 50%,
-            var(--bg-dark) 100%);
-    background-size: 200% 100%;
+/* ==================== YORUM KARTI ==================== */
+.comment-card {
+    background: var(--bg-dark);
     border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-sm);
-    animation: shimmer 1.5s infinite;
+    padding: 0.6rem;
+    border: 1px solid var(--border);
+    transition: border-color var(--transition-fast);
+}
+
+.comment-card:hover {
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+.comment-card.verified {
+    border-left: 3px solid var(--success, #10b981);
+}
+
+.comment-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.35rem;
+    gap: 0.5rem;
+}
+
+.comment-user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.comment-avatar {
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+
+.comment-username {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.comment-username.clickable {
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.comment-username.clickable:hover {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.comment-role-badge {
+    font-size: 0.5rem;
+    font-weight: 700;
+    padding: 0.05rem 0.3rem;
+    border-radius: 8px;
+    flex-shrink: 0;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.comment-verified {
+    font-size: 0.65rem;
+    color: var(--success, #10b981);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.comment-time {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.comment-edited {
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.comment-text {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin: 0 0 0.4rem 0;
+    word-wrap: break-word;
+}
+
+/* ==================== OYLAMA SİSTEMİ ==================== */
+.comment-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.comment-votes {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.vote-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 0.15rem 0.35rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    transition: all var(--transition-fast);
+}
+
+.vote-btn:hover:not(:disabled) {
+    background: var(--bg-card-hover);
+    border-color: var(--border);
+}
+
+.vote-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.like-btn.active {
+    color: var(--success, #10b981);
+    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.dislike-btn.active {
+    color: var(--error, #ef4444);
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.vote-score {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.1rem 0.3rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+}
+
+.vote-score.positive {
+    color: var(--success, #10b981);
+}
+
+.vote-score.negative {
+    color: var(--error, #ef4444);
+}
+
+.report-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 0.15rem 0.3rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    transition: all var(--transition-fast);
+    opacity: 0.4;
+}
+
+.report-btn:hover {
+    opacity: 1;
+    color: var(--error, #ef4444);
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+/* ==================== SİLME BUTONU ==================== */
+.comment-mod-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.delete-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 0.15rem 0.3rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    transition: all var(--transition-fast);
+    opacity: 0.4;
+}
+
+.delete-btn:hover {
+    opacity: 1;
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+/* ==================== PROFİL POPUP ==================== */
+.profile-popup {
+    position: absolute;
+    z-index: 100;
+    animation: fadeInUp 0.2s ease-out;
+}
+
+.profile-popup-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+    min-width: 220px;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+}
+
+.profile-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-dark);
+}
+
+.profile-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+
+.profile-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.profile-role {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.profile-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0.2rem;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+}
+
+.profile-close:hover {
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+}
+
+.profile-details {
+    padding: 0.5rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.profile-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+}
+
+.profile-detail-row svg {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+/* ==================== YORUM FORMU ==================== */
+.comment-form-container {
+    background: var(--bg-card);
+    padding: 0.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.comment-input {
+    width: 100%;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.4rem 0.5rem;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.75rem;
+    resize: none;
+    margin-bottom: 0.35rem;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.comment-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.btn-submit-comment {
+    width: 100%;
+    padding: 0.4rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-submit-comment:hover {
+    opacity: 0.9;
+}
+
+/* ==================== USER PROFILE (HEADER) ==================== */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-dark);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+.avatar-circle {
+    width: 24px;
+    height: 24px;
+    background: var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.avatar-circle svg {
+    width: 14px;
+    height: 14px;
+}
+
+#user-role-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
 /* ==================== RESPONSIVE ==================== */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
     .main-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
+        grid-template-columns: 280px 1fr 280px;
+        /* Biraz daha daralt */
+    }
+}
+
+@media (max-width: 992px) {
+    .main-container {
+        grid-template-columns: 260px 1fr;
+        /* Sağ paneli gizle veya alta al */
+        /* Sağ panel için mobil çözüm düşünülmeli (Tabs veya Accordion) */
     }
 
-    .left-panel {
-        max-height: 300px;
+    .right-panel {
+        display: none;
+        /* Şimdilik gizleyelim, mobilde tab yapısına geçilebilir */
     }
 }
 
 @media (max-width: 768px) {
+    .main-container {
+        grid-template-columns: 1fr;
+        /* Tek sütun */
+        overflow-y: auto;
+        height: auto;
+    }
+
+    .left-panel,
+    .center-panel {
+        height: auto;
+        max-height: 500px;
+        /* Scrollable */
+    }
+
     .header-content {
         flex-direction: column;
-        gap: var(--spacing-md);
-    }
-
-    .header-right {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .main-container {
-        padding: var(--spacing-sm);
         gap: var(--spacing-sm);
     }
 }

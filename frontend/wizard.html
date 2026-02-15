@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bölüm Seçimi - Harf Hesaplama</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-gradient"></div>
+
+    <div class="container">
+        <div class="login-card">
+            <!-- Header -->
+            <div class="header">
+                <div class="icon-wrapper">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                        <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                    </svg>
+                </div>
+                <h1 class="title">Bölüm Seçimi</h1>
+                <p class="subtitle" id="step-title">Lütfen üniversitenizi seçin</p>
+            </div>
+
+            <!-- Wizard Steps Indicator -->
+            <div class="wizard-steps">
+                <div class="step active" id="step-indicator-1">1</div>
+                <div class="step" id="step-indicator-2">2</div>
+                <div class="step" id="step-indicator-3">3</div>
+            </div>
+
+            <!-- Form Steps -->
+            <div class="form-container">
+
+                <!-- Adım 1: Üniversite -->
+                <div class="step-content active" id="step-1">
+                    <div class="form-group">
+                        <label for="university-select">Üniversite</label>
+                        <div class="select-wrapper">
+                            <select id="university-select" class="custom-select">
+                                <option value="">Seçiniz...</option>
+                                <option value="itu">İstanbul Teknik Üniversitesi</option>
+                                <option value="boun">Boğaziçi Üniversitesi</option>
+                                <option value="odtu">ODTÜ</option>
+                                <option value="ytu">Yıldız Teknik Üniversitesi</option>
+                            </select>
+                            <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adım 2: Fakülte -->
+                <div class="step-content" id="step-2">
+                    <div class="form-group">
+                        <label for="faculty-select">Fakülte</label>
+                        <div class="select-wrapper">
+                            <select id="faculty-select" class="custom-select">
+                                <option value="">Önce üniversite seçin...</option>
+                            </select>
+                            <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <button class="btn-back-step" onclick="prevStep(1)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 12H5" />
+                            <path d="M12 19l-7-7 7-7" />
+                        </svg>
+                        Geri Dön
+                    </button>
+                </div>
+
+                <!-- Adım 3: Bölüm -->
+                <div class="step-content" id="step-3">
+                    <div class="form-group">
+                        <label for="department-select">Bölüm</label>
+                        <div class="select-wrapper">
+                            <select id="department-select" class="custom-select">
+                                <option value="">Önce fakülte seçin...</option>
+                            </select>
+                            <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <button class="btn-back-step" onclick="prevStep(2)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 12H5" />
+                            <path d="M12 19l-7-7 7-7" />
+                        </svg>
+                        Geri Dön
+                    </button>
+                </div>
+
+                <button id="next-btn" class="btn-primary" disabled>
+                    <span>Devam Et</span>
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mock Data ve Logic -->
+    <script src="js/mock-data.js"></script>
+    <script src="js/wizard.js"></script>
+</body>
+
+</html>
