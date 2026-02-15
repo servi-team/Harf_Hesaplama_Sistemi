@@ -147,7 +147,7 @@ Sırasıyla açılan/seçilen hiyerarşik yapı:
     - Admin **onaylarsa** → `status: 2` (bir daha şikayet edilemez, yeşil ✓ rozeti).
     - Admin **uygunsuz bulursa** → Yorum silinir.
 - [x] **3.3 Yorum Ekleme:** ✅ Yorum formu ve `submitComment` fonksiyonu.
-- [ ] **3.4 Yorum Düzenleme:** Kullanıcı kendi yorumunu düzenleyebilir (`editedAt` güncellenir).
+- [x] **3.4 Yorum Düzenleme:** ✅ Kullanıcı kendi yorumunu düzenleyebilir (`editedAt` güncellenir).
 - [x] **3.5 Oylama Sistemi:** ✅ Like/Dislike toggle, sayaç güncelleme, mükerrer engeli (`likedBy`/`dislikedBy`).
 - [x] **3.6 Sıralama Algoritması:** ✅ Score (🔥) ve Yeni (🕐) modları arası geçiş.
     - `Score = likeCount - dislikeCount`
@@ -158,9 +158,9 @@ Sırasıyla açılan/seçilen hiyerarşik yapı:
 ### 🟠 Faz 4 — Admin Paneli
 > **Hedef:** Sisteme yeni üniversite/bölüm/ders eklemek için arayüz.
 
-- [ ] **4.1 Admin Girişi:** Özel yetkili kullanıcı girişi.
-- [ ] **4.2 Veri Yönetim Ekranları:** Tablo yapısında verileri listeleme, ekleme, düzenleme, silme.
-- [ ] **4.3 Kriter/Skala Editörü:** Değerlendirme Kriterleri ve Harf Skalası verilerini girme/düzenleme.
+- [x] **4.1 Admin Girişi:** ✅ Role-based kullanıcı girişi (öğrenci/admin/superadmin).
+- [x] **4.2 Veri Yönetim Ekranları:** ✅ Modal tabanlı Üniversite/Fakülte/Bölüm/Ders ekleme, onay/red sistemi.
+- [x] **4.3 Kriter/Skala Editörü:** ✅ Değerlendirme Kriterleri ve Harf Skalası verilerini girme (dinamik form).
 
 ### 🔴 Faz 5 — Entegrasyon ve Deploy
 > **Hedef:** Sistemi canlıya alma.

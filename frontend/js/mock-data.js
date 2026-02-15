@@ -3,7 +3,8 @@
  * Gerçek Firebase bağlantısı yapıldığında bu dosya kaldırılacak
  * 
  * Yapı:
- *   universities → semesters → courses
+ *   universities → faculties → departments
+ *   semesters (departmentId bazlı) → courses
  *   Her ders (course) için:
  *     - gradingCriteria[] → Değerlendirme Kriterleri (Vize/Final/Lab yüzdeleri)
  *     - gradeScales[]     → Harf Skalası (çan eğrisine göre değişen aralıklar + studentCount)
@@ -50,6 +51,22 @@ const MOCK_DATA = {
                 }
             }
         }
+    },
+
+    // ==================== FAKÜLTELER ====================
+    // Her üniversitenin fakülteleri (departmentIds ile bölümlere bağlanır)
+    faculties: {
+        'ytu': [
+            { id: 'elektrik-elektronik-fak', name: 'Elektrik-Elektronik Fakültesi', departmentIds: ['bilgisayar-muhendisligi', 'elektrik-elektronik'] }
+        ],
+        'itu': [
+            { id: 'bb-fakulte', name: 'Bilgisayar ve Bilişim Fakültesi', departmentIds: ['bilgisayar-muhendisligi'] },
+            { id: 'ee-fakulte', name: 'Elektrik-Elektronik Fakültesi', departmentIds: ['elektrik-elektronik'] },
+            { id: 'makina-fakulte', name: 'Makina Fakültesi', departmentIds: ['makine-muhendisligi'] }
+        ],
+        'boun': [
+            { id: 'muhendislik', name: 'Mühendislik Fakültesi', departmentIds: ['bilgisayar-muhendisligi', 'endustri-muhendisligi'] }
+        ]
     },
 
     semesters: {
@@ -443,8 +460,9 @@ const MOCK_DATA = {
         { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0, studentCount: null }
     ],
 
-    // Onay bekleyen veriler (Öğrenci/Misafir eklemeleri)
-    // status: 0 (bekliyor)
+    // Onay bekleyen veriler (Öğrenci/Misafir eklemeleri, düzenleme/silme talepleri)
+    // action: 'add' | 'edit' | 'delete'
+    // message: kullanıcı mesajı (talep sebebi/açıklaması)
     pendingData: []
 };
 
@@ -460,6 +478,15 @@ const MOCK_DATA = {
                     if (dept.status === undefined) { dept.status = 2; dept.addedBy = 'system'; }
                 });
             }
+        });
+    }
+
+    // Faculties
+    if (MOCK_DATA.faculties) {
+        Object.values(MOCK_DATA.faculties).forEach(facList => {
+            facList.forEach(fac => {
+                if (fac.status === undefined) { fac.status = 2; fac.addedBy = 'system'; }
+            });
         });
     }
 

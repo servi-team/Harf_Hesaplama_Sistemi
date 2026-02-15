@@ -189,6 +189,11 @@
                 MOCK_DATA.mockCurrentUser = null;
                 roleLabel.textContent = 'Misafir';
             }
+
+            // Admin panel rozetini güncelle
+            if (typeof updatePendingBadge === 'function') {
+                updatePendingBadge();
+            }
         });
     </script>
 </body>

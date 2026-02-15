@@ -113,6 +113,8 @@ function findCourseById(courseId) {
 function createCourseDetailHTML(course, criteriaList, scaleList) {
     const hasCriteria = criteriaList.length > 0;
     const hasScales = scaleList.length > 0;
+    const deptId = localStorage.getItem('selectedDepartment');
+    const isLoggedIn = MOCK_DATA.mockCurrentUser !== null;
 
     return `
         <div class="detail-header">
@@ -121,6 +123,12 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                 <h2 class="detail-course-name">${course.courseName}</h2>
                 <div class="detail-course-meta">
                     ${course.credit} Kredi • ${course.ects} AKTS
+                    ${isLoggedIn ? `
+                    <span class="detail-admin-actions">
+                        <button class="btn-action-sm btn-edit-sm" onclick="openEditModal('COURSE','${course.id}','${deptId}')" title="Dersi Düzenle">✏️</button>
+                        <button class="btn-action-sm btn-delete-sm" onclick="openDeleteModal('COURSE','${course.id}','${deptId}')" title="Dersi Sil">🗑️</button>
+                    </span>
+                    ` : ''}
                 </div>
             </div>
             <button class="btn-close" onclick="closeCourseDetail()">
@@ -135,7 +143,13 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
             <!-- Değerlendirme Kriteri ve Harf Skalası Seçiciler -->
             <div class="selector-row">
                 <div class="selector-group">
-                    <label>📊 Değerlendirme Kriteri</label>
+                    <label>📊 Değerlendirme Kriteri
+                        ${isLoggedIn && hasCriteria ? `
+                        <span class="selector-actions">
+                            <button class="btn-action-xs" onclick="editSelectedCriteria('${course.id}')" title="Düzenle">✏️</button>
+                            <button class="btn-action-xs" onclick="deleteSelectedCriteria('${course.id}')" title="Sil">🗑️</button>
+                        </span>` : ''}
+                    </label>
                     <select id="criteria-select" class="custom-select">
                         ${hasCriteria
             ? `<option value="">Seçin...</option>
@@ -145,7 +159,13 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                     </select>
                 </div>
                 <div class="selector-group">
-                    <label>🔤 Harf Skalası</label>
+                    <label>🔤 Harf Skalası
+                        ${isLoggedIn && hasScales ? `
+                        <span class="selector-actions">
+                            <button class="btn-action-xs" onclick="editSelectedScale('${course.id}')" title="Düzenle">✏️</button>
+                            <button class="btn-action-xs" onclick="deleteSelectedScale('${course.id}')" title="Sil">🗑️</button>
+                        </span>` : ''}
+                    </label>
                     <select id="scale-select" class="custom-select">
                         ${hasScales
             ? `<option value="">Seçin...</option>
@@ -382,4 +402,42 @@ function highlightGradeRow(letter) {
     document.querySelectorAll('.grade-row').forEach(row => {
         row.classList.toggle('active', row.dataset.letter === letter);
     });
+}
+
+// ==================== ADMIN EDIT/DELETE HELPERS ====================
+
+function editSelectedCriteria(courseId) {
+    const sel = document.getElementById('criteria-select');
+    const idx = sel ? sel.value : '';
+    if (idx === '' || idx === 'manual') return alert('Önce bir kriter seti seçin');
+    const list = MOCK_DATA.gradingCriteria[courseId] || [];
+    const item = list[Number(idx)];
+    if (item && typeof openEditModal === 'function') openEditModal('CRITERIA', item.id, courseId);
+}
+
+function deleteSelectedCriteria(courseId) {
+    const sel = document.getElementById('criteria-select');
+    const idx = sel ? sel.value : '';
+    if (idx === '' || idx === 'manual') return alert('Önce bir kriter seti seçin');
+    const list = MOCK_DATA.gradingCriteria[courseId] || [];
+    const item = list[Number(idx)];
+    if (item && typeof openDeleteModal === 'function') openDeleteModal('CRITERIA', item.id, courseId);
+}
+
+function editSelectedScale(courseId) {
+    const sel = document.getElementById('scale-select');
+    const idx = sel ? sel.value : '';
+    if (idx === '' || idx === 'default') return alert('Önce bir harf skalası seçin');
+    const list = MOCK_DATA.gradeScales[courseId] || [];
+    const item = list[Number(idx)];
+    if (item && typeof openEditModal === 'function') openEditModal('SCALE', item.id, courseId);
+}
+
+function deleteSelectedScale(courseId) {
+    const sel = document.getElementById('scale-select');
+    const idx = sel ? sel.value : '';
+    if (idx === '' || idx === 'default') return alert('Önce bir harf skalası seçin');
+    const list = MOCK_DATA.gradeScales[courseId] || [];
+    const item = list[Number(idx)];
+    if (item && typeof openDeleteModal === 'function') openDeleteModal('SCALE', item.id, courseId);
 }

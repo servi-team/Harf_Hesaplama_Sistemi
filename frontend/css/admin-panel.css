@@ -1,5 +1,28 @@
 /* Admin Panel & Veri Ekleme Modalı */
 
+/* Header Butonları */
+.btn-header-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: var(--radius-sm);
+    color: var(--primary-light);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-header-action:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: var(--primary);
+    color: var(--text-primary);
+}
+
 /* Modal Container */
 #admin-modal-container {
     position: relative;
@@ -178,6 +201,36 @@
     background: var(--primary-dark);
 }
 
+.btn-delete {
+    background: var(--error);
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 500;
+    font-family: inherit;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+}
+
+.delete-confirm {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.delete-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.request-message {
+    resize: vertical;
+    min-height: 50px;
+}
+
 /* Badge Style */
 .badge {
     background: var(--error);
@@ -225,10 +278,32 @@
 }
 
 .pending-details {
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     font-size: 0.9rem;
     color: var(--text-secondary);
     line-height: 1.4;
+}
+
+.pending-message {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(99, 102, 241, 0.05);
+    border-left: 3px solid var(--primary);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.pending-action-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
 }
 
 .pending-actions {
@@ -264,6 +339,127 @@
 
 .btn-reject:hover {
     background: rgba(239, 68, 68, 0.1);
+}
+
+/* Dinamik Satırlar (Kriter & Skala) */
+.dynamic-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.dynamic-row .form-control {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+.btn-add-row {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    border: 1px dashed var(--primary);
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-left: 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-add-row:hover {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+.btn-remove-row {
+    background: transparent;
+    border: none;
+    color: var(--error);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-remove-row:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.scale-row span {
+    flex-shrink: 0;
+}
+
+/* Inline Düzenleme/Silme Butonları */
+.btn-action-sm {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: var(--radius-sm);
+    opacity: 0;
+    transition: all 0.2s;
+    line-height: 1;
+}
+
+.course-item:hover .btn-action-sm,
+.detail-admin-actions .btn-action-sm,
+.selector-actions .btn-action-xs {
+    opacity: 1;
+}
+
+.btn-action-sm:hover {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.btn-delete-sm:hover {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.btn-action-xs {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.2rem;
+    border-radius: 3px;
+    opacity: 0.5;
+    transition: all 0.2s;
+    line-height: 1;
+}
+
+.btn-action-xs:hover {
+    opacity: 1;
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.course-actions {
+    display: flex;
+    gap: 0.15rem;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+.detail-admin-actions {
+    display: inline-flex;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+.selector-actions {
+    display: inline-flex;
+    gap: 0.15rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
 }
 
 /* Animasyonlar */

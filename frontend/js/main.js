@@ -96,6 +96,9 @@ function createSemesterElement(semester) {
 function createCourseElement(course) {
     const savedGrade = selectedGrades[course.id] || '';
     const grades = ['', 'AA', 'BA', 'BB', 'CB', 'CC', 'DC', 'DD', 'FD', 'FF'];
+    const deptId = localStorage.getItem('selectedDepartment');
+    const isLoggedIn = MOCK_DATA.mockCurrentUser !== null;
+
     return `
         <div class="course-item" 
              draggable="true" 
@@ -107,6 +110,12 @@ function createCourseElement(course) {
                 <div class="course-name">${course.courseName}</div>
                 <div class="course-credits">${course.credit} Kredi • ${course.ects} AKTS</div>
             </div>
+            ${isLoggedIn ? `
+            <div class="course-actions" onclick="event.stopPropagation()">
+                <button class="btn-action-sm btn-edit-sm" onclick="openEditModal('COURSE','${course.id}','${deptId}')" title="Düzenle">✏️</button>
+                <button class="btn-action-sm btn-delete-sm" onclick="openDeleteModal('COURSE','${course.id}','${deptId}')" title="Sil">🗑️</button>
+            </div>
+            ` : ''}
             <select class="grade-select" onclick="event.stopPropagation()" 
                     onchange="onGradeChange('${course.id}', this.value); highlightGradeRow(this.value);">
                 ${grades.map(g => `<option value="${g}" ${savedGrade === g ? 'selected' : ''}>${g || '—'}</option>`).join('')}

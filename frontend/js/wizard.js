@@ -1,6 +1,7 @@
 /**
  * Seçim Sihirbazı (Wizard) Mantığı
  * Üniversite -> Fakülte -> Bölüm
+ * Fakülte verisi MOCK_DATA.faculties'den okunur
  */
 
 let currentStep = 1;
@@ -8,23 +9,6 @@ let selectedUniversity = null;
 let selectedFaculty = null;
 let selectedDepartment = null;
 
-// Mock Fakülte Verisi (Çünkü mevcut mock-data.js'de fakülte yok)
-const MOCK_FACULTIES = {
-    'itu': [
-        { id: 'bb-fakulte', name: 'Bilgisayar ve Bilişim Fakültesi', depts: ['bilgisayar-muhendisligi'] },
-        { id: 'ee-fakulte', name: 'Elektrik-Elektronik Fakültesi', depts: ['elektrik-elektronik'] },
-        { id: 'makina-fakulte', name: 'Makina Fakültesi', depts: ['makine-muhendisligi'] }
-    ],
-    'boun': [
-        { id: 'muhendislik', name: 'Mühendislik Fakültesi', depts: ['bilgisayar-muhendisligi', 'endustri-muhendisligi'] }
-    ],
-    'odtu': [
-        { id: 'muhendislik', name: 'Mühendislik Fakültesi', depts: ['bilgisayar-muhendisligi', 'yazilim-muhendisligi'] }
-    ],
-    'ytu': [
-        { id: 'elektrik-elektronik-fak', name: 'Elektrik-Elektronik Fakültesi', depts: ['bilgisayar-muhendisligi', 'elektrik-elektronik'] }
-    ]
-};
 
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
@@ -78,7 +62,7 @@ function loadFaculties(uniId) {
     const facultySelect = document.getElementById('faculty-select');
     facultySelect.innerHTML = '<option value="">Fakülte Seçiniz...</option>';
 
-    const faculties = MOCK_FACULTIES[uniId] || [];
+    const faculties = MOCK_DATA.faculties[uniId] || [];
     faculties.forEach(fac => {
         const option = document.createElement('option');
         option.value = fac.id;
@@ -91,13 +75,13 @@ function loadDepartments(uniId, facultyId) {
     const deptSelect = document.getElementById('department-select');
     deptSelect.innerHTML = '<option value="">Bölüm Seçiniz...</option>';
 
-    const faculties = MOCK_FACULTIES[uniId];
+    const faculties = MOCK_DATA.faculties[uniId] || [];
     const faculty = faculties.find(f => f.id === facultyId);
 
     if (faculty && MOCK_DATA.universities[uniId]) {
         const uniDepts = MOCK_DATA.universities[uniId].departments;
 
-        faculty.depts.forEach(deptId => {
+        (faculty.departmentIds || []).forEach(deptId => {
             const deptInfo = uniDepts[deptId];
             if (deptInfo) {
                 const option = document.createElement('option');
