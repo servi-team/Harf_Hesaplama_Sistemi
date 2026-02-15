@@ -441,5 +441,56 @@ const MOCK_DATA = {
         { letterGrade: 'DD', minScore: 60, maxScore: 64, gradePoint: 1.0, studentCount: null },
         { letterGrade: 'FD', minScore: 50, maxScore: 59, gradePoint: 0.5, studentCount: null },
         { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0, studentCount: null }
-    ]
+    ],
+
+    // Onay bekleyen veriler (Öğrenci/Misafir eklemeleri)
+    // status: 0 (bekliyor)
+    pendingData: []
 };
+
+// ==================== DATA MIGRATION HELPER ====================
+// Mevcut verileri onaylı (status: 2) olarak işaretler
+(function migrateData() {
+    // Universities
+    if (MOCK_DATA.universities) {
+        Object.values(MOCK_DATA.universities).forEach(uni => {
+            if (uni.status === undefined) { uni.status = 2; uni.addedBy = 'system'; }
+            if (uni.departments) {
+                Object.values(uni.departments).forEach(dept => {
+                    if (dept.status === undefined) { dept.status = 2; dept.addedBy = 'system'; }
+                });
+            }
+        });
+    }
+
+    // Semesters & Courses
+    if (MOCK_DATA.semesters) {
+        Object.values(MOCK_DATA.semesters).forEach(semesterList => {
+            semesterList.forEach(sem => {
+                if (sem.courses) {
+                    sem.courses.forEach(course => {
+                        if (course.status === undefined) { course.status = 2; course.addedBy = 'system'; }
+                    });
+                }
+            });
+        });
+    }
+
+    // Grading Criteria
+    if (MOCK_DATA.gradingCriteria) {
+        Object.values(MOCK_DATA.gradingCriteria).forEach(list => {
+            list.forEach(item => {
+                if (item.status === undefined) { item.status = 2; item.addedBy = 'system'; }
+            });
+        });
+    }
+
+    // Grade Scales
+    if (MOCK_DATA.gradeScales) {
+        Object.values(MOCK_DATA.gradeScales).forEach(list => {
+            list.forEach(item => {
+                if (item.status === undefined) { item.status = 2; item.addedBy = 'system'; }
+            });
+        });
+    }
+})();

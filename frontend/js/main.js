@@ -105,7 +105,7 @@ function createCourseElement(course) {
             <div class="course-info">
                 <div class="course-code">${course.courseCode}</div>
                 <div class="course-name">${course.courseName}</div>
-                <div class="course-credits">${course.credit} Kredi • ${course.ects} ECTS</div>
+                <div class="course-credits">${course.credit} Kredi • ${course.ects} AKTS</div>
             </div>
             <select class="grade-select" onclick="event.stopPropagation()" 
                     onchange="onGradeChange('${course.id}', this.value); highlightGradeRow(this.value);">

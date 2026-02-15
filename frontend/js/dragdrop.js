@@ -120,7 +120,7 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                 <div class="detail-course-code">${course.courseCode}</div>
                 <h2 class="detail-course-name">${course.courseName}</h2>
                 <div class="detail-course-meta">
-                    ${course.credit} Kredi • ${course.ects} ECTS
+                    ${course.credit} Kredi • ${course.ects} AKTS
                 </div>
             </div>
             <button class="btn-close" onclick="closeCourseDetail()">

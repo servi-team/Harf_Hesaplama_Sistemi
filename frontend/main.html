@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/main-screen.css">
     <link rel="stylesheet" href="css/detail-panel.css">
+    <link rel="stylesheet" href="css/admin-panel.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -40,6 +41,13 @@
             </div>
 
             <div class="header-right">
+                <button class="btn-header-action" id="btn-pending-approval" onclick="openPendingModal()"
+                    style="display: none;" title="Onay Bekleyenler">
+                    📋 <span class="badge" id="pending-count">0</span>
+                </button>
+                <button class="btn-header-action" id="btn-add-data" onclick="openAddModal()" title="Veri Ekle">
+                    ➕ Veri Ekle
+                </button>
                 <div class="user-profile">
                     <div class="avatar-circle">
                         <!-- Giriş tipine göre ikon değişecek -->
@@ -149,10 +157,14 @@
         </div>
     </div>
 
+    <!-- Admin Modal Container -->
+    <div id="admin-modal-container"></div>
+
     <script src="js/mock-data.js"></script>
     <script src="js/calculator.js"></script>
     <script src="js/dragdrop.js"></script>
     <script src="js/comments.js"></script>
+    <script src="js/admin-panel.js"></script>
     <script src="js/main.js"></script>
 
     <!-- Kullanıcı Rolünü Script Tarafında da Yönetmek İçin -->

@@ -169,6 +169,7 @@ function renderComments(comments, courseId) {
         const canDelete = !isGuest() && !isOwn && myLevel > ownerLevel;
         const canReport = !isGuest() && !isOwn && myLevel >= ownerLevel && comment.status === 1
             && (!myId || !comment.reportedBy.includes(myId));
+        const canEdit = !isGuest() && isOwn;
 
         // Kullanıcı bilgisini mockUsers'ından çek
         const commentOwner = MOCK_DATA.mockUsers[comment.userId];
@@ -210,6 +211,14 @@ function renderComments(comments, courseId) {
                         <span class="vote-score ${score > 0 ? 'positive' : score < 0 ? 'negative' : ''}">${score > 0 ? '+' : ''}${score}</span>
                     </div>
                     <div class="comment-mod-actions">
+                        ${canEdit ? `
+                            <button class="edit-btn" onclick="editComment('${courseId}', '${comment.id}')" title="Düzenle">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                        ` : ''}
                         ${canReport ? `
                             <button class="report-btn" onclick="reportComment('${courseId}', '${comment.id}')" title="Şikayet Et">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
