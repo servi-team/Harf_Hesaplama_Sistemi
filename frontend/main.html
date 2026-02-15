@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Not Hesaplama - Ana Ekran</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/main-screen.css">
+    <link rel="stylesheet" href="css/detail-panel.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="main-screen">
+    <div class="background-gradient"></div>
+
+    <!-- Header -->
+    <header class="top-header">
+        <div class="header-content">
+            <div class="header-left">
+                <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+                <div>
+                    <h1 class="header-title">Not Hesaplama</h1>
+                    <p class="header-subtitle" id="university-name">Yükleniyor...</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="gpa-display">
+                    <span class="gpa-label">Genel Ortalama</span>
+                    <span class="gpa-value" id="overall-gpa">-</span>
+                </div>
+                <button class="btn-back" onclick="window.location.href='index.html'">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Geri
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- SOL PANEL - Ders Listesi -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <h2>Dersler</h2>
+                <span class="course-count" id="course-count">0 ders</span>
+            </div>
+
+            <div class="semester-list" id="semester-list">
+                <!-- Dönemler buraya dinamik olarak eklenecek -->
+                <div class="loading-skeleton">
+                    <div class="skeleton-item"></div>
+                    <div class="skeleton-item"></div>
+                    <div class="skeleton-item"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAĞ PANEL - Hesaplama Alanı -->
+        <div class="right-panel">
+            <div class="drop-zone" id="drop-zone">
+                <div class="drop-zone-placeholder" id="drop-placeholder">
+                    <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    <h3>Ders Sürükle veya Seç</h3>
+                    <p>Sol panelden bir dersi buraya sürükleyin veya tıklayın</p>
+                </div>
+
+                <div class="course-detail" id="course-detail" style="display: none;">
+                    <!-- Ders detayları buraya gelecek -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/mock-data.js"></script>
+    <script src="js/calculator.js"></script>
+    <script src="js/dragdrop.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
