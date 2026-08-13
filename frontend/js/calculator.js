@@ -77,20 +77,32 @@ function calculateOfferingGrade(courseId, offering) {
         return;
     }
 
-    // Ağırlıklı ortalama hesapla
+    // Ağırlıklı ortalama & Baraj kontrolü
     let totalScore = 0;
+    let failedMinScore = false;
+    let failedMinInfo = '';
+
     offering.gradingCriteria.forEach(criterion => {
         const score = scores[criterion.name] || 0;
         totalScore += score * (criterion.weight / 100);
+
+        if (criterion.minRequiredScore !== undefined && score < criterion.minRequiredScore) {
+            failedMinScore = true;
+            failedMinInfo = `${criterion.name} baraj notunu (${criterion.minRequiredScore}) geçemediniz!`;
+        }
     });
 
-    // Harf notunu bul
-    const letterGrade = offering.gradingScale.find(scale =>
-        totalScore >= scale.minScore && totalScore <= scale.maxScore
-    );
+    let letterGradeObj;
+    if (failedMinScore) {
+        letterGradeObj = { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0, warning: failedMinInfo };
+    } else {
+        letterGradeObj = offering.gradingScale.find(scale =>
+            totalScore >= scale.minScore && totalScore <= scale.maxScore
+        ) || { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0 };
+    }
 
     // Sonucu göster
-    displayResult(totalScore, letterGrade, courseId);
+    displayResult(totalScore, letterGradeObj, courseId);
 }
 
 /**
@@ -106,35 +118,45 @@ function addManualCriteria() {
     criteriaDiv.className = 'manual-criteria-item';
     criteriaDiv.dataset.id = id;
     criteriaDiv.innerHTML = `
-        <div class="manual-criteria-inputs">
+        <div class="manual-criteria-inputs" style="display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.5rem;">
             <input 
                 type="text" 
-                class="criteria-name-input" 
-                placeholder="Kriter adı (ör: Vize)"
+                class="criteria-name-input custom-input" 
+                placeholder="Kriter (ör: Final)"
                 data-id="${id}"
+                style="flex: 2;"
             />
             <input 
                 type="number" 
-                class="criteria-weight-input" 
+                class="criteria-weight-input custom-input" 
                 placeholder="Ağırlık %"
                 min="0" 
                 max="100"
                 data-id="${id}"
                 oninput="updateManualWeights()"
+                style="flex: 1;"
             />
             <input 
                 type="number" 
-                class="criteria-score-input" 
+                class="criteria-score-input custom-input" 
                 placeholder="Not (0-100)"
                 min="0" 
                 max="100"
                 data-id="${id}"
+                style="flex: 1;"
             />
-            <button class="btn-remove-criteria" onclick="removeManualCriteria(${id})">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
+            <input 
+                type="number" 
+                class="criteria-min-input custom-input" 
+                placeholder="Min Baraj"
+                min="0" 
+                max="100"
+                data-id="${id}"
+                title="Sınavdan alınması gereken min baraj notu (Opsiyonel)"
+                style="flex: 1;"
+            />
+            <button class="btn-remove-criteria" onclick="removeManualCriteria(${id})" style="background: none; border: none; color: #ef4444; cursor: pointer;">
+                ❌
             </button>
         </div>
     `;
@@ -147,7 +169,7 @@ function addManualCriteria() {
  * Manuel kriter siler (Mod B)
  */
 function removeManualCriteria(id) {
-    const item = document.querySelector(`[data-id="${id}"]`).closest('.manual-criteria-item');
+    const item = document.querySelector(`[data-id="${id}"]`) ? document.querySelector(`[data-id="${id}"]`).closest('.manual-criteria-item') : null;
     if (item) {
         item.remove();
         updateManualWeights();
@@ -166,15 +188,12 @@ function updateManualWeights() {
         totalWeight += weight;
     });
 
-    // Progress bar'ı güncelle
     const progressBar = document.getElementById('manual-weight-bar');
     const totalSpan = document.getElementById('manual-weight-total');
     const calculateBtn = document.getElementById('manual-calculate-btn');
 
     if (progressBar) {
         progressBar.style.width = `${Math.min(totalWeight, 100)}%`;
-
-        // Renk değiştir
         if (totalWeight === 100) {
             progressBar.style.background = 'linear-gradient(135deg, var(--primary), var(--secondary))';
         } else if (totalWeight > 100) {
@@ -190,7 +209,6 @@ function updateManualWeights() {
             totalWeight > 100 ? '#ef4444' : 'var(--text-muted)';
     }
 
-    // Hesapla butonunu aktif/pasif yap
     if (calculateBtn) {
         calculateBtn.disabled = totalWeight !== 100 || weightInputs.length === 0;
     }
@@ -210,16 +228,19 @@ function calculateManualGrade(courseId) {
     let totalScore = 0;
     let totalWeight = 0;
     let allValid = true;
+    let failedMinScore = false;
+    let failedMinInfo = '';
 
     items.forEach(item => {
-        const id = item.dataset.id;
         const nameInput = item.querySelector('.criteria-name-input');
         const weightInput = item.querySelector('.criteria-weight-input');
         const scoreInput = item.querySelector('.criteria-score-input');
+        const minInput = item.querySelector('.criteria-min-input');
 
         const name = nameInput.value.trim();
         const weight = parseFloat(weightInput.value);
         const score = parseFloat(scoreInput.value);
+        const minVal = minInput && minInput.value !== '' ? parseFloat(minInput.value) : NaN;
 
         if (!name || isNaN(weight) || isNaN(score) || score < 0 || score > 100) {
             allValid = false;
@@ -233,6 +254,11 @@ function calculateManualGrade(courseId) {
 
             totalScore += score * (weight / 100);
             totalWeight += weight;
+
+            if (!isNaN(minVal) && score < minVal) {
+                failedMinScore = true;
+                failedMinInfo = `${name} baraj notunu (${minVal}) geçemediniz!`;
+            }
         }
     });
 
@@ -259,12 +285,17 @@ function calculateManualGrade(courseId) {
         { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0 }
     ];
 
-    const letterGrade = standardScale.find(scale =>
-        totalScore >= scale.minScore && totalScore <= scale.maxScore
-    );
+    let letterGradeObj;
+    if (failedMinScore) {
+        letterGradeObj = { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0, warning: failedMinInfo };
+    } else {
+        letterGradeObj = standardScale.find(scale =>
+            totalScore >= scale.minScore && totalScore <= scale.maxScore
+        ) || { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0 };
+    }
 
     // Sonucu göster
-    displayManualResult(totalScore, letterGrade, courseId);
+    displayManualResult(totalScore, letterGradeObj, courseId);
 }
 
 /**
@@ -276,34 +307,41 @@ function displayResult(numericGrade, letterGrade, courseId) {
 
     container.style.display = 'block';
     container.innerHTML = `
-        <div class="result-card">
-            <div class="result-header">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
+        <div class="result-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-top: 1rem;">
+            <div class="result-header" style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary-light);">
                 <h3>Hesaplama Sonucu</h3>
             </div>
-            <div class="result-grades">
+            ${letterGrade.warning ? `
+                <div class="warning-banner" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.5rem; border-radius: 6px; font-size: 0.8rem; margin: 0.5rem 0; font-weight: 600;">
+                    ⚠️ ${letterGrade.warning}
+                </div>
+            ` : ''}
+            <div class="result-grades" style="display: flex; justify-content: space-around; margin: 1rem 0; text-align: center;">
                 <div class="result-item">
-                    <span class="result-label">Sayısal Not</span>
-                    <span class="result-value numeric">${numericGrade.toFixed(2)}</span>
+                    <span class="result-label" style="font-size: 0.75rem; color: var(--text-muted); display: block;">Sayısal Not</span>
+                    <span class="result-value numeric" style="font-size: 1.25rem; font-weight: 700;">${numericGrade.toFixed(2)}</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Harf Notu</span>
-                    <span class="result-value letter">${letterGrade.letterGrade}</span>
+                    <span class="result-label" style="font-size: 0.75rem; color: var(--text-muted); display: block;">Harf Notu</span>
+                    <span class="result-value letter" style="font-size: 1.5rem; font-weight: 800; color: var(--primary-light);">${letterGrade.letterGrade}</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Katsayı</span>
-                    <span class="result-value">${letterGrade.gradePoint.toFixed(1)}</span>
+                    <span class="result-label" style="font-size: 0.75rem; color: var(--text-muted); display: block;">Katsayı</span>
+                    <span class="result-value" style="font-size: 1.25rem; font-weight: 700;">${letterGrade.gradePoint.toFixed(1)}</span>
                 </div>
             </div>
-            <button class="btn-save-grade" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
-                Notu Kaydet
+            
+            <div style="margin-bottom: 0.75rem;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Derse Özel Not / Açıklama (İsteğe bağlı):</label>
+                <input type="text" id="result-grade-note-${courseId}" class="custom-input" placeholder="Örn: Bu ders için MAT101 saydırıldı">
+            </div>
+
+            <button class="btn-primary" style="width: 100%;" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
+                💾 Notu Kaydet
             </button>
         </div>
     `;
 
-    // Scroll to result
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -316,29 +354,37 @@ function displayManualResult(numericGrade, letterGrade, courseId) {
 
     container.style.display = 'block';
     container.innerHTML = `
-        <div class="result-card">
-            <div class="result-header">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <h3>Hesaplama Sonucu</h3>
+        <div class="result-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-top: 1rem;">
+            <div class="result-header" style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary-light);">
+                <h3>Hesaplama Sonucu (Manuel)</h3>
             </div>
-            <div class="result-grades">
+            ${letterGrade.warning ? `
+                <div class="warning-banner" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.5rem; border-radius: 6px; font-size: 0.8rem; margin: 0.5rem 0; font-weight: 600;">
+                    ⚠️ ${letterGrade.warning}
+                </div>
+            ` : ''}
+            <div class="result-grades" style="display: flex; justify-content: space-around; margin: 1rem 0; text-align: center;">
                 <div class="result-item">
-                    <span class="result-label">Sayısal Not</span>
-                    <span class="result-value numeric">${numericGrade.toFixed(2)}</span>
+                    <span class="result-label" style="font-size: 0.75rem; color: var(--text-muted); display: block;">Sayısal Not</span>
+                    <span class="result-value numeric" style="font-size: 1.25rem; font-weight: 700;">${numericGrade.toFixed(2)}</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Harf Notu</span>
-                    <span class="result-value letter">${letterGrade.letterGrade}</span>
+                    <span class="result-label" style="font-size: 0.75rem; color: var(--text-muted); display: block;">Harf Notu</span>
+                    <span class="result-value letter" style="font-size: 1.5rem; font-weight: 800; color: var(--primary-light);">${letterGrade.letterGrade}</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Katsayı</span>
-                    <span class="result-value">${letterGrade.gradePoint.toFixed(1)}</span>
+                    <span class="result-label" style="font-size: 0.75rem; color: var(--text-muted); display: block;">Katsayı</span>
+                    <span class="result-value" style="font-size: 1.25rem; font-weight: 700;">${letterGrade.gradePoint.toFixed(1)}</span>
                 </div>
             </div>
-            <button class="btn-save-grade" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
-                Notu Kaydet
+
+            <div style="margin-bottom: 0.75rem;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Derse Özel Not / Açıklama (İsteğe bağlı):</label>
+                <input type="text" id="result-grade-note-${courseId}" class="custom-input" placeholder="Örn: Bu ders için MAT101 saydırıldı">
+            </div>
+
+            <button class="btn-primary" style="width: 100%;" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
+                💾 Notu Kaydet
             </button>
         </div>
     `;
@@ -350,22 +396,37 @@ function displayManualResult(numericGrade, letterGrade, courseId) {
  * Hesaplanan notu sol paneldeki listeye kaydeder
  */
 function saveGradeToList(courseId, letterGrade) {
-    // Sol paneldeki select'i güncelle
+    const noteInput = document.getElementById(`result-grade-note-${courseId}`);
+    if (noteInput && noteInput.value.trim() !== '') {
+        const noteText = noteInput.value.trim();
+        const uni = localStorage.getItem('selectedUniversity') || 'genel';
+        const dept = localStorage.getItem('selectedDepartment') || 'genel';
+        let gradeNotes = {};
+        try {
+            gradeNotes = JSON.parse(localStorage.getItem(`gradeNotes_${uni}_${dept}`) || '{}');
+        } catch(e) {}
+        gradeNotes[courseId] = noteText;
+        localStorage.setItem(`gradeNotes_${uni}_${dept}`, JSON.stringify(gradeNotes));
+    }
+
+    // Sol paneldeki select elementini güncelle
     const select = document.querySelector(`.grade-select[data-course-id="${courseId}"]`);
     if (select) {
         select.value = letterGrade;
+    }
+    
+    // onGradeChange fonksiyonunu çağır
+    if (typeof onGradeChange === 'function') {
         onGradeChange(courseId, letterGrade);
     }
 
-    // Başarı mesajı göster
-    showSuccess('Not kaydedildi!');
+    showSuccess(`Not (${letterGrade}) başarıyla kaydedildi!`);
 }
 
 /**
  * Hata mesajı gösterir
  */
 function showError(message) {
-    // Basit alert yerine daha güzel bir notification sistemi eklenebilir
     alert('❌ ' + message);
 }
 

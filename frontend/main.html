@@ -41,6 +41,10 @@
             </div>
 
             <div class="header-right">
+                <button class="btn-theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Açık/Koyu Tema">☀️</button>
+                <button class="btn-header-action" onclick="openStatsModal()" title="İstatistikler">
+                    📊 İstatistikler
+                </button>
                 <button class="btn-header-action" id="btn-pending-approval" onclick="openPendingModal()"
                     style="display: none;" title="Onay Bekleyenler">
                     📋 <span class="badge" id="pending-count">0</span>
@@ -48,7 +52,7 @@
                 <button class="btn-header-action" id="btn-add-data" onclick="openAddModal()" title="Veri Ekle">
                     ➕ Veri Ekle
                 </button>
-                <div class="user-profile">
+                <div class="user-profile" onclick="openProfileModal()" style="cursor: pointer;" title="Profil ve Ayarlar">
                     <div class="avatar-circle">
                         <!-- Giriş tipine göre ikon değişecek -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -88,6 +92,18 @@
                     <div class="skeleton-item"></div>
                 </div>
             </div>
+
+            <!-- Belirgin AGNO Kartı ve Özel Ders Ekle Butonu -->
+            <div class="left-panel-footer">
+                <div class="agno-card-prominent">
+                    <div class="agno-info">
+                        <span class="agno-title">GENEL ORTALAMA (AGNO)</span>
+                        <span class="agno-value" id="prominent-agno-value">0.00</span>
+                    </div>
+                    <button class="btn-agno-stats" onclick="openStatsModal()" title="Detaylı İstatistikler">📊 Detaylar</button>
+                </div>
+                <button class="btn-add-custom-course" onclick="openCustomCourseModal()">➕ Özel Ders / Yan Dal Ekle</button>
+            </div>
         </div>
 
         <!-- ORTA PANEL - Hesaplama Alanı -->
@@ -108,12 +124,17 @@
             </div>
         </div>
 
-        <!-- SAĞ PANEL - Harf Aralıkları + Yorumlar -->
-        <div class="right-panel">
+        <!-- SAĞ PANEL - Tek ve Akıcı (Harf Aralıkları + Yorumlar) -->
+        <div class="right-panel unified-right-panel">
             <!-- ÜST: Harf Aralıkları -->
             <div class="right-sub-panel grade-scale-panel" id="grade-scale-panel">
                 <div class="panel-header">
-                    <h2>Harf Aralıkları</h2>
+                    <h2>Harf Skalası</h2>
+                    <select id="scale-year-select" class="custom-select-sm" onchange="onScaleYearChange(this.value)" style="font-size: 0.75rem; padding: 0.2rem 0.4rem; border-radius: 4px; background: var(--bg-dark); color: var(--text-primary); border: 1px solid var(--border);">
+                        <option value="current">2024-2025 (Güncel)</option>
+                        <option value="2023-2024">2023-2024 Güz (Geçmiş)</option>
+                        <option value="2022-2023">2022-2023 Bahar (Geçmiş)</option>
+                    </select>
                 </div>
                 <div class="grade-scale-content" id="grade-scale-content">
                     <div class="grade-scale-placeholder">
@@ -150,9 +171,157 @@
                 <!-- Yorum Ekleme Formu (User only) -->
                 <div class="comment-form-container" id="comment-form"
                     style="display:none; padding: 0.75rem; border-top: 1px solid var(--border);">
-                    <textarea class="comment-input" placeholder="Yorumunuzu yazın..." rows="2"></textarea>
+                    <textarea class="comment-input" id="new-comment-text" placeholder="Yorumunuzu yazın..." rows="2"></textarea>
                     <button class="btn-submit-comment" onclick="submitComment()">Gönder</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modallar -->
+    <!-- 1. İstatistikler Modalı -->
+    <div class="modal" id="stats-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeModal('stats-modal')"></div>
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>📊 Dönem Ortalamaları & Detaylı İstatistikler</h2>
+                <button class="modal-close" onclick="closeModal('stats-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="stats-modal-body">
+                <!-- JavaScript ile doldurulacak -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Profil & Ayarlar Modalı -->
+    <div class="modal" id="profile-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeModal('profile-modal')"></div>
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h2>👤 Profil & Hesap Ayarları</h2>
+                <button class="modal-close" onclick="closeModal('profile-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-tabs">
+                    <button class="tab-btn active" onclick="switchProfileTab('info')">Kullanıcı Bilgileri</button>
+                    <button class="tab-btn" onclick="switchProfileTab('dept')">Üniversite & Bölüm Değiştir</button>
+                    <button class="tab-btn" onclick="switchProfileTab('my-comments')">Yorumlarım</button>
+                </div>
+
+                <!-- Tab 1: Bilgiler -->
+                <div class="profile-tab-content" id="tab-info">
+                    <form onsubmit="saveProfileInfo(event)" class="form-grid">
+                        <div class="form-group">
+                            <label>Ad Soyad</label>
+                            <input type="text" id="prof-name" class="custom-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>E-posta</label>
+                            <input type="email" id="prof-email" class="custom-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Yeni Parola (İsteğe bağlı)</label>
+                            <input type="password" id="prof-pass" class="custom-input" placeholder="******">
+                        </div>
+                        <button type="submit" class="btn-primary" style="margin-top: 1rem;">Bilgileri Kaydet</button>
+                    </form>
+                    <hr style="margin: 1.5rem 0; border-color: var(--border);">
+                    <div style="text-align: right;">
+                        <button class="btn-danger-sm" onclick="deleteAccount()">⚠️ Hesabımı Sil</button>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Üniversite / Bölüm Değiştirme -->
+                <div class="profile-tab-content" id="tab-dept" style="display: none;">
+                    <div class="form-group">
+                        <label>Üniversite Seç</label>
+                        <select id="prof-uni-select" class="custom-select" onchange="onProfUniChange(this.value)">
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Bölüm Seç</label>
+                        <select id="prof-dept-select" class="custom-select">
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="saveDeptChange()" style="margin-top: 1.5rem; width: 100%;">Bölümü Değiştir ve Güncelle</button>
+                </div>
+
+                <!-- Tab 3: Yorumlarım -->
+                <div class="profile-tab-content" id="tab-my-comments" style="display: none;">
+                    <div id="my-comments-list" class="my-comments-list">
+                        <!-- JS ile yüklenecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Özel Ders / Yan Dal Ekle Modalı -->
+    <div class="modal" id="custom-course-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeModal('custom-course-modal')"></div>
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h2>➕ Özel Ders / Yan Dal Ekle</h2>
+                <button class="modal-close" onclick="closeModal('custom-course-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="saveCustomCourse(event)" class="form-grid">
+                    <div class="form-group">
+                        <label>Ders Kodu</label>
+                        <input type="text" id="custom-course-code" class="custom-input" placeholder="Örn: YND101" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ders Adı</label>
+                        <input type="text" id="custom-course-name" class="custom-input" placeholder="Örn: Yan Dal Giriş" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kredi</label>
+                        <input type="number" id="custom-course-credit" class="custom-input" min="1" max="10" value="3" required>
+                    </div>
+                    <div class="form-group">
+                        <label>AKTS</label>
+                        <input type="number" id="custom-course-ects" class="custom-input" min="1" max="30" value="5" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Eklenecek Dönem</label>
+                        <select id="custom-course-semester" class="custom-select" required>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ders Etiketi / Türü</label>
+                        <select id="custom-course-tag" class="custom-select" required>
+                            <option value="yandal">Yan Dal Dersi</option>
+                            <option value="cap">ÇAP Dersi</option>
+                            <option value="missing">Platformda Eksik Ders (Yöneticilere Bildir)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top: 1.5rem; width: 100%;">Dersi Panele Ekle</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Ders Müfredattan Kaldırıldı Bildir Modalı -->
+    <div class="modal" id="report-course-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeModal('report-course-modal')"></div>
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h2>⚠️ Ders Müfredattan Kaldırıldı Bildir</h2>
+                <button class="modal-close" onclick="closeModal('report-course-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="submitCourseReport(event)">
+                    <input type="hidden" id="report-course-id">
+                    <div class="form-group">
+                        <label>Açıklama (Zorunlu)</label>
+                        <textarea id="report-description" class="custom-input" rows="4" placeholder="Bu ders müfredattan hangi seneden itibaren kaldırıldı? Açıklayınız..." required></textarea>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Müfredat Linki / Kanıt (İsteğe bağlı)</label>
+                        <input type="url" id="report-link" class="custom-input" placeholder="https://universite.edu.tr/mufredat.pdf">
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top: 1.5rem; width: 100%;">Bildirimi Gönder</button>
+                </form>
             </div>
         </div>
     </div>

@@ -162,18 +162,16 @@ function renderComments(comments, courseId) {
         const ownerRole = getCommentOwnerRole(comment);
         const ownerLevel = getRoleLevel(ownerRole);
         const roleColor = ROLE_COLORS[ownerRole] || '#6b7280';
-        const roleLabel = ROLE_LABELS[ownerRole] || 'Kullanıcı';
-
         // Hiyerarşik yetki hesaplama
         const canVote = !isGuest() && !isOwn;
-        const canDelete = !isGuest() && !isOwn && myLevel > ownerLevel;
+        const canDelete = !isGuest() && (isOwn || myLevel > ownerLevel);
         const canReport = !isGuest() && !isOwn && myLevel >= ownerLevel && comment.status === 1
             && (!myId || !comment.reportedBy.includes(myId));
         const canEdit = !isGuest() && isOwn;
 
         // Kullanıcı bilgisini mockUsers'ından çek
         const commentOwner = MOCK_DATA.mockUsers[comment.userId];
-        const ownerName = commentOwner ? commentOwner.userName : 'Bilinmeyen';
+        const ownerName = commentOwner ? commentOwner.userName : 'Kullanıcı';
 
         return `
             <div class="comment-card ${comment.status === 2 ? 'verified' : ''}" data-comment-id="${comment.id}">
@@ -181,7 +179,7 @@ function renderComments(comments, courseId) {
                     <div class="comment-user-info">
                         <span class="comment-avatar" style="background: ${roleColor}">${ownerName.charAt(0)}</span>
                         <span class="comment-username clickable" onclick="showProfilePopup('${comment.userId}', event)">${ownerName}</span>
-                        <span class="comment-role-badge" style="color: ${roleColor}; border-color: ${roleColor}30; background: ${roleColor}10">${roleLabel}</span>
+                        <span class="comment-role-badge" style="color: ${roleColor}; border-color: ${roleColor}30; background: ${roleColor}10">${ROLE_LABELS[ownerRole]}</span>
                         ${comment.status === 2 ? '<span class="comment-verified" title="Admin Onaylı">✓</span>' : ''}
                     </div>
                     <div class="comment-meta">
@@ -194,7 +192,7 @@ function renderComments(comments, courseId) {
                     <div class="comment-votes">
                         <button class="vote-btn like-btn ${hasLiked ? 'active' : ''}" 
                                 onclick="voteComment('${courseId}', '${comment.id}', 'like')"
-                                ${isOwn ? 'disabled title="Kendi yorumunuz"' : ''}>
+                                ${!canVote ? 'disabled' : ''}>
                             <svg viewBox="0 0 24 24" fill="${hasLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" width="14" height="14">
                                 <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                             </svg>
@@ -202,7 +200,7 @@ function renderComments(comments, courseId) {
                         </button>
                         <button class="vote-btn dislike-btn ${hasDisliked ? 'active' : ''}" 
                                 onclick="voteComment('${courseId}', '${comment.id}', 'dislike')"
-                                ${isOwn ? 'disabled title="Kendi yorumunuz"' : ''}>
+                                ${!canVote ? 'disabled' : ''}>
                             <svg viewBox="0 0 24 24" fill="${hasDisliked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" width="14" height="14">
                                 <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
                             </svg>
@@ -213,26 +211,17 @@ function renderComments(comments, courseId) {
                     <div class="comment-mod-actions">
                         ${canEdit ? `
                             <button class="edit-btn" onclick="editComment('${courseId}', '${comment.id}')" title="Düzenle">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                </svg>
+                                ✏️
                             </button>
                         ` : ''}
                         ${canReport ? `
                             <button class="report-btn" onclick="reportComment('${courseId}', '${comment.id}')" title="Şikayet Et">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                                    <line x1="4" y1="22" x2="4" y2="15"></line>
-                                </svg>
+                                🚩
                             </button>
                         ` : ''}
                         ${canDelete ? `
                             <button class="delete-btn" onclick="deleteComment('${courseId}', '${comment.id}')" title="Yorumu Sil">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                </svg>
+                                🗑️
                             </button>
                         ` : ''}
                     </div>
@@ -264,28 +253,90 @@ function voteComment(courseId, commentId, voteType) {
             comment.likedBy = comment.likedBy.filter(id => id !== currentUser.userId);
             comment.likeCount--;
         } else {
+            comment.likedBy.push(currentUser.userId);
+            comment.likeCount++;
             if (comment.dislikedBy.includes(currentUser.userId)) {
                 comment.dislikedBy = comment.dislikedBy.filter(id => id !== currentUser.userId);
                 comment.dislikeCount--;
             }
-            comment.likedBy.push(currentUser.userId);
-            comment.likeCount++;
         }
     } else {
         if (comment.dislikedBy.includes(currentUser.userId)) {
             comment.dislikedBy = comment.dislikedBy.filter(id => id !== currentUser.userId);
             comment.dislikeCount--;
         } else {
+            comment.dislikedBy.push(currentUser.userId);
+            comment.dislikeCount++;
             if (comment.likedBy.includes(currentUser.userId)) {
                 comment.likedBy = comment.likedBy.filter(id => id !== currentUser.userId);
                 comment.likeCount--;
             }
-            comment.dislikedBy.push(currentUser.userId);
-            comment.dislikeCount++;
         }
     }
 
     loadComments(courseId);
+}
+
+// ==================== YORUM DÜZENLEME & SİLME ====================
+
+function editComment(courseId, commentId) {
+    const card = document.querySelector(`[data-comment-id="${commentId}"]`);
+    if (!card) return;
+
+    const textElem = card.querySelector('.comment-text');
+    if (!textElem) return;
+
+    const currentText = textElem.innerText;
+    textElem.style.display = 'none';
+
+    let editForm = card.querySelector('.comment-edit-form');
+    if (!editForm) {
+        editForm = document.createElement('div');
+        editForm.className = 'comment-edit-form';
+        editForm.innerHTML = `
+            <textarea class="edit-textarea custom-input" rows="2" style="margin-top: 0.5rem;">${escapeHtml(currentText)}</textarea>
+            <div class="edit-actions" style="margin-top: 0.4rem; display: flex; gap: 0.4rem; justify-content: flex-end;">
+                <button class="btn-primary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="saveEditComment('${courseId}', '${commentId}')">Kaydet</button>
+                <button class="btn-edit-cancel" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="cancelEditComment('${commentId}')">İptal</button>
+            </div>
+        `;
+        card.appendChild(editForm);
+    } else {
+        editForm.style.display = 'block';
+    }
+}
+
+function saveEditComment(courseId, commentId) {
+    const card = document.querySelector(`[data-comment-id="${commentId}"]`);
+    if (!card) return;
+
+    const textarea = card.querySelector('.edit-textarea');
+    if (!textarea) return;
+
+    const newText = textarea.value.trim();
+    if (!newText) return;
+
+    const comments = MOCK_DATA.comments[courseId];
+    if (comments) {
+        const comment = comments.find(c => c.id === commentId);
+        if (comment) {
+            comment.commentText = newText;
+            comment.editedAt = new Date().toISOString();
+        }
+    }
+
+    loadComments(courseId);
+}
+
+function cancelEditComment(commentId) {
+    const card = document.querySelector(`[data-comment-id="${commentId}"]`);
+    if (!card) return;
+
+    const textElem = card.querySelector('.comment-text');
+    const editForm = card.querySelector('.comment-edit-form');
+
+    if (textElem) textElem.style.display = 'block';
+    if (editForm) editForm.remove();
 }
 
 // ==================== ŞİKAYET ====================
@@ -326,18 +377,17 @@ function deleteComment(courseId, commentId) {
     const comment = comments.find(c => c.id === commentId);
     if (!comment) return;
 
-    // Hiyerarşi kontrolü — sadece alt seviye yorumlar silinebilir
     const myLevel = getRoleLevel(currentUser.role);
     const ownerLevel = getRoleLevel(getCommentOwnerRole(comment));
+    const isOwn = comment.userId === currentUser.userId;
 
-    if (myLevel <= ownerLevel) {
+    if (!isOwn && myLevel <= ownerLevel) {
         alert('Bu yorumu silmeye yetkiniz yok.');
         return;
     }
 
     if (!confirm('Bu yorumu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) return;
 
-    // Yorumu diziden kalıcı olarak sil
     const idx = comments.findIndex(c => c.id === commentId);
     if (idx !== -1) {
         comments.splice(idx, 1);
@@ -356,7 +406,7 @@ function submitComment() {
 
     if (!currentCourseIdForComments) return;
 
-    const textarea = document.querySelector('.comment-input');
+    const textarea = document.getElementById('new-comment-text') || document.querySelector('.comment-input');
     if (!textarea) return;
 
     const text = textarea.value.trim();

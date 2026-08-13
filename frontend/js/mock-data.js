@@ -161,6 +161,31 @@ const MOCK_DATA = {
     // ==================== DEĞERLENDİRME KRİTERLERİ (GradingCriteria) ====================
     // Her ders için birden fazla kriter seti olabilir (farklı yıllar/hocalar)
     gradingCriteria: {
+        'matematik-1': [
+            {
+                id: 'mat1-kriter-2025',
+                label: '2025 - Ali Demirel',
+                instructorName: 'Ali Demirel',
+                year: 2025,
+                criteria: [
+                    { name: 'Vize', weight: 40, order: 1 },
+                    { name: 'Final', weight: 60, minRequiredScore: 40, order: 2 }
+                ]
+            }
+        ],
+        'fizik-1': [
+            {
+                id: 'fiz1-kriter-2025',
+                label: '2025 - Ayşe Şahin',
+                instructorName: 'Ayşe Şahin',
+                year: 2025,
+                criteria: [
+                    { name: 'Vize', weight: 30, order: 1 },
+                    { name: 'Lab', weight: 20, order: 2 },
+                    { name: 'Final', weight: 50, minRequiredScore: 40, order: 3 }
+                ]
+            }
+        ],
         'yapisal-programlama': [
             {
                 id: 'yp-kriter-2025-cakmaktas',
@@ -171,7 +196,7 @@ const MOCK_DATA = {
                     { name: 'Vize 1', weight: 20, order: 1 },
                     { name: 'Vize 2', weight: 20, order: 2 },
                     { name: 'Lab', weight: 20, order: 3 },
-                    { name: 'Final', weight: 40, order: 4 }
+                    { name: 'Final', weight: 40, minRequiredScore: 40, order: 4 }
                 ]
             },
             {
@@ -182,7 +207,7 @@ const MOCK_DATA = {
                 criteria: [
                     { name: 'Vize', weight: 30, order: 1 },
                     { name: 'Ödev', weight: 10, order: 2 },
-                    { name: 'Final', weight: 60, order: 3 }
+                    { name: 'Final', weight: 60, minRequiredScore: 40, order: 3 }
                 ]
             },
             {
@@ -193,7 +218,7 @@ const MOCK_DATA = {
                 criteria: [
                     { name: 'Vize', weight: 30, order: 1 },
                     { name: 'Lab', weight: 30, order: 2 },
-                    { name: 'Final', weight: 40, order: 3 }
+                    { name: 'Final', weight: 40, minRequiredScore: 40, order: 3 }
                 ]
             }
         ],
@@ -205,7 +230,7 @@ const MOCK_DATA = {
                 year: 2025,
                 criteria: [
                     { name: 'Vize', weight: 40, order: 1 },
-                    { name: 'Final', weight: 60, order: 2 }
+                    { name: 'Final', weight: 60, minRequiredScore: 40, order: 2 }
                 ]
             }
         ],
@@ -218,7 +243,7 @@ const MOCK_DATA = {
                 criteria: [
                     { name: 'Vize', weight: 30, order: 1 },
                     { name: 'Proje', weight: 30, order: 2 },
-                    { name: 'Final', weight: 40, order: 3 }
+                    { name: 'Final', weight: 40, minRequiredScore: 40, order: 3 }
                 ]
             }
         ]

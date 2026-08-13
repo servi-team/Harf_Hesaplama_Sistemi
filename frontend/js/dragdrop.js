@@ -63,12 +63,15 @@ function handleDrop(e) {
     }
 }
 
+let currentSelectedCourseId = null;
+
 // ==================== DERS DETAY YÜKLEME ====================
 
 /**
  * Ders detaylarını orta panelde gösterir
  */
 function loadCourseDetail(courseId) {
+    currentSelectedCourseId = courseId;
     const course = findCourseById(courseId);
     if (!course) {
         console.error('Ders bulunamadı:', courseId);
@@ -123,6 +126,7 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                 <h2 class="detail-course-name">${course.courseName}</h2>
                 <div class="detail-course-meta">
                     ${course.credit} Kredi • ${course.ects} AKTS
+                    <button class="btn-action-sm" onclick="openReportCourseModal('${course.id}')" title="Ders Müfredattan Kaldırıldı Bildir" style="margin-left: 0.5rem; background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: 0.7rem; cursor: pointer;">⚠️ Kaldırıldı Bildir</button>
                     ${isLoggedIn ? `
                     <span class="detail-admin-actions">
                         <button class="btn-action-sm btn-edit-sm" onclick="openEditModal('COURSE','${course.id}','${deptId}')" title="Dersi Düzenle">✏️</button>
@@ -151,11 +155,9 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                         </span>` : ''}
                     </label>
                     <select id="criteria-select" class="custom-select">
-                        ${hasCriteria
-            ? `<option value="">Seçin...</option>
-                               ${criteriaList.map((c, i) => `<option value="${i}">${c.label}</option>`).join('')}`
-            : `<option value="manual">Kriter Tanımlı Değil — Manuel Giriş</option>`
-        }
+                        <option value="">Seçin...</option>
+                        ${criteriaList.map((c, i) => `<option value="${i}">${c.label}</option>`).join('')}
+                        <option value="custom">✨ Özel - Elle Gir</option>
                     </select>
                 </div>
                 <div class="selector-group">
@@ -167,11 +169,9 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                         </span>` : ''}
                     </label>
                     <select id="scale-select" class="custom-select">
-                        ${hasScales
-            ? `<option value="">Seçin...</option>
-                               ${scaleList.map((s, i) => `<option value="${i}">${s.label}</option>`).join('')}`
-            : `<option value="default">Varsayılan Skala</option>`
-        }
+                        <option value="default">Varsayılan Skala</option>
+                        ${scaleList.map((s, i) => `<option value="${i}">${s.label}</option>`).join('')}
+                        <option value="custom">✨ Özel - Elle Gir</option>
                     </select>
                 </div>
             </div>
@@ -181,8 +181,10 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                 <!-- Seçim yapıldığında doldurulacak -->
             </div>
 
-            <!-- Manuel Hesaplama (kriter yoksa) -->
-            ${!hasCriteria ? createManualCriteriaHTML(course) : ''}
+            <!-- Manuel Hesaplama Kapsayıcısı -->
+            <div id="manual-mode-wrapper">
+                ${!hasCriteria ? createManualCriteriaHTML(course) : ''}
+            </div>
 
             <!-- Sonuç -->
             <div id="result-container" style="display: none;">
@@ -236,13 +238,24 @@ function createManualCriteriaHTML(course) {
  * Ders detay event listener'larını kurar
  */
 function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
+    const course = findCourseById(courseId);
     // Değerlendirme Kriteri seçici
     const criteriaSelect = document.getElementById('criteria-select');
     if (criteriaSelect) {
         criteriaSelect.addEventListener('change', (e) => {
-            const index = parseInt(e.target.value);
-            if (!isNaN(index) && criteriaList[index]) {
-                loadCriteriaContent(criteriaList[index], courseId);
+            const value = e.target.value;
+            const container = document.getElementById('criteria-container');
+            const manualWrapper = document.getElementById('manual-mode-wrapper');
+
+            if (value === 'custom') {
+                if (container) container.innerHTML = '';
+                if (manualWrapper) manualWrapper.innerHTML = createManualCriteriaHTML(course);
+            } else {
+                const index = parseInt(value);
+                if (!isNaN(index) && criteriaList[index]) {
+                    if (manualWrapper) manualWrapper.innerHTML = '';
+                    loadCriteriaContent(criteriaList[index], courseId);
+                }
             }
         });
     }
@@ -256,6 +269,12 @@ function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
                 // Varsayılan skala
                 loadScaleToRightPanel({
                     label: 'Varsayılan',
+                    scale: MOCK_DATA.defaultGradeScale,
+                    totalStudents: null
+                });
+            } else if (value === 'custom') {
+                loadScaleToRightPanel({
+                    label: 'Özel Skala',
                     scale: MOCK_DATA.defaultGradeScale,
                     totalStudents: null
                 });
@@ -337,6 +356,32 @@ function loadScaleToRightPanel(scaleData) {
             `).join('')}
         </div>
     `;
+}
+
+function onScaleYearChange(year) {
+    if (!currentSelectedCourseId) return;
+    const scaleList = MOCK_DATA.gradeScales[currentSelectedCourseId] || [];
+    if (year === 'current') {
+        updateGradeScale(currentSelectedCourseId);
+    } else if (scaleList.length > 1) {
+        loadScaleToRightPanel(scaleList[1] || scaleList[0]);
+    } else {
+        loadScaleToRightPanel({
+            label: `${year} Dönemi (Ahmet Hoca)`,
+            scale: [
+                { letterGrade: 'AA', minScore: 88, maxScore: 100, gradePoint: 4.0, studentCount: 12 },
+                { letterGrade: 'BA', minScore: 82, maxScore: 87, gradePoint: 3.5, studentCount: 18 },
+                { letterGrade: 'BB', minScore: 75, maxScore: 81, gradePoint: 3.0, studentCount: 25 },
+                { letterGrade: 'CB', minScore: 68, maxScore: 74, gradePoint: 2.5, studentCount: 30 },
+                { letterGrade: 'CC', minScore: 60, maxScore: 67, gradePoint: 2.0, studentCount: 22 },
+                { letterGrade: 'DC', minScore: 55, maxScore: 59, gradePoint: 1.5, studentCount: 14 },
+                { letterGrade: 'DD', minScore: 50, maxScore: 54, gradePoint: 1.0, studentCount: 8 },
+                { letterGrade: 'FD', minScore: 40, maxScore: 49, gradePoint: 0.5, studentCount: 5 },
+                { letterGrade: 'FF', minScore: 0, maxScore: 39, gradePoint: 0.0, studentCount: 3 }
+            ],
+            totalStudents: 137
+        });
+    }
 }
 
 /**
