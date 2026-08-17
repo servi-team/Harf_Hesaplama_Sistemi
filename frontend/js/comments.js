@@ -246,34 +246,40 @@ function voteComment(courseId, commentId, voteType) {
     if (!comment) return;
 
     const currentUser = getCurrentUser();
+    if (!currentUser) return;
+
+    if (!Array.isArray(comment.likedBy)) comment.likedBy = [];
+    if (!Array.isArray(comment.dislikedBy)) comment.dislikedBy = [];
+
     const isLike = voteType === 'like';
 
     if (isLike) {
         if (comment.likedBy.includes(currentUser.userId)) {
             comment.likedBy = comment.likedBy.filter(id => id !== currentUser.userId);
-            comment.likeCount--;
+            comment.likeCount = Math.max(0, comment.likeCount - 1);
         } else {
             comment.likedBy.push(currentUser.userId);
             comment.likeCount++;
             if (comment.dislikedBy.includes(currentUser.userId)) {
                 comment.dislikedBy = comment.dislikedBy.filter(id => id !== currentUser.userId);
-                comment.dislikeCount--;
+                comment.dislikeCount = Math.max(0, comment.dislikeCount - 1);
             }
         }
     } else {
         if (comment.dislikedBy.includes(currentUser.userId)) {
             comment.dislikedBy = comment.dislikedBy.filter(id => id !== currentUser.userId);
-            comment.dislikeCount--;
+            comment.dislikeCount = Math.max(0, comment.dislikeCount - 1);
         } else {
             comment.dislikedBy.push(currentUser.userId);
             comment.dislikeCount++;
             if (comment.likedBy.includes(currentUser.userId)) {
                 comment.likedBy = comment.likedBy.filter(id => id !== currentUser.userId);
-                comment.likeCount--;
+                comment.likeCount = Math.max(0, comment.likeCount - 1);
             }
         }
     }
 
+    if (typeof saveMockData === 'function') saveMockData();
     loadComments(courseId);
 }
 
@@ -322,6 +328,7 @@ function saveEditComment(courseId, commentId) {
         if (comment) {
             comment.commentText = newText;
             comment.editedAt = new Date().toISOString();
+            if (typeof saveMockData === 'function') saveMockData();
         }
     }
 
@@ -347,7 +354,7 @@ function reportComment(courseId, commentId) {
         return;
     }
 
-    if (!confirm('Bu yorumu şikayet etmek istediğinizden emin misiniz?')) return;
+    if (!confirm('Bu yorumu şikayet etmek istediğinizden emin misiniz? Incelenmek üzere yöneticilere iletilecektir.')) return;
 
     const comments = MOCK_DATA.comments[courseId];
     if (!comments) return;
@@ -356,12 +363,31 @@ function reportComment(courseId, commentId) {
     if (!comment) return;
 
     const currentUser = getCurrentUser();
+    if (!currentUser) return;
 
+    if (!Array.isArray(comment.reportedBy)) comment.reportedBy = [];
     if (!comment.reportedBy.includes(currentUser.userId)) {
         comment.reportedBy.push(currentUser.userId);
     }
-    comment.status = 0;
 
+    // Yorum hemen silinmez, Admin onay listesine eklenir
+    if (!MOCK_DATA.pendingData) MOCK_DATA.pendingData = [];
+    const existing = MOCK_DATA.pendingData.find(p => p.type === 'COMMENT' && p.commentId === commentId);
+    if (!existing) {
+        MOCK_DATA.pendingData.push({
+            type: 'COMMENT',
+            action: 'delete',
+            courseId: courseId,
+            commentId: commentId,
+            commentText: comment.commentText,
+            reportedBy: currentUser.userName || currentUser.email,
+            timestamp: new Date().toISOString(),
+            message: `Yorum Şikayet Edildi: "${comment.commentText}"`
+        });
+    }
+
+    if (typeof saveMockData === 'function') saveMockData();
+    alert('✅ Şikayetiniz yöneticilere iletildi. Teşekkürler!');
     loadComments(courseId);
 }
 
@@ -391,6 +417,7 @@ function deleteComment(courseId, commentId) {
     const idx = comments.findIndex(c => c.id === commentId);
     if (idx !== -1) {
         comments.splice(idx, 1);
+        if (typeof saveMockData === 'function') saveMockData();
     }
 
     loadComments(courseId);
@@ -434,6 +461,7 @@ function submitComment() {
     }
     MOCK_DATA.comments[currentCourseIdForComments].push(newComment);
 
+    if (typeof saveMockData === 'function') saveMockData();
     textarea.value = '';
     loadComments(currentCourseIdForComments);
 }

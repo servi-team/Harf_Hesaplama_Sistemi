@@ -96,8 +96,8 @@ function createSemesterElement(semester) {
 function createCourseElement(course) {
     const savedGrade = selectedGrades[course.id] || '';
     const grades = ['', 'AA', 'BA', 'BB', 'CB', 'CC', 'DC', 'DD', 'FD', 'FF'];
-    const deptId = localStorage.getItem('selectedDepartment');
-    const isLoggedIn = MOCK_DATA.mockCurrentUser !== null;
+    const deptId = localStorage.getItem('selectedDepartment') || 'bilgisayar-muh';
+    const isAdmin = typeof isAdminUser === 'function' && isAdminUser();
     const uni = selectedUniversity || 'genel';
     const dept = selectedDepartment || 'genel';
 
@@ -121,10 +121,10 @@ function createCourseElement(course) {
                 <div class="course-name">${course.courseName}</div>
                 <div class="course-credits">${course.credit} Kredi • ${course.ects} AKTS</div>
             </div>
-            ${isLoggedIn ? `
-            <div class="course-actions" onclick="event.stopPropagation()">
-                <button class="btn-action-sm btn-edit-sm" onclick="openEditModal('COURSE','${course.id}','${deptId}')" title="Düzenle">✏️</button>
-                <button class="btn-action-sm btn-delete-sm" onclick="openDeleteModal('COURSE','${course.id}','${deptId}')" title="Sil">🗑️</button>
+            ${isAdmin ? `
+            <div class="course-admin-actions" onclick="event.stopPropagation()">
+                <button type="button" class="btn-course-action btn-edit-course" onclick="openEditModal('COURSE','${course.id}','${deptId}')" title="Dersi Düzenle">✏️</button>
+                <button type="button" class="btn-course-action btn-delete-course" onclick="openDeleteModal('COURSE','${course.id}','${deptId}')" title="Dersi Sil">🗑️</button>
             </div>
             ` : ''}
             <select class="grade-select" data-course-id="${course.id}" onclick="event.stopPropagation()" 
@@ -331,6 +331,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ==================== MODAL VE İSTATİSTİK YÖNETİMİ ====================
 function closeModal(modalId) {
+    if (!modalId) {
+        const adminContainer = document.getElementById('admin-modal-container');
+        if (adminContainer) adminContainer.innerHTML = '';
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        return;
+    }
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'none';
 }
@@ -339,6 +345,13 @@ function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'flex';
 }
+
+// ESC tuşu ile açık modal kapatma
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeModal();
+    }
+});
 
 // İstatistikler Modalı Açma
 function openStatsModal() {
@@ -616,4 +629,11 @@ function submitCourseReport(e) {
 
     alert('✅ Ders müfredattan kaldırıldı bildirimi incelenmek üzere yöneticilere iletildi. Teşekkürler!');
     closeModal('report-course-modal');
+}
+
+// Sağ Panel Alt Bölüm Açma / Kapama (Accordion)
+function toggleSubPanel(panelId) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    panel.classList.toggle('collapsed');
 }

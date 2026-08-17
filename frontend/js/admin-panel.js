@@ -11,7 +11,8 @@ const DATA_TYPES = {
     DEPARTMENT: { label: 'Bölüm', icon: '🏢' },
     COURSE: { label: 'Ders', icon: '📚' },
     CRITERIA: { label: 'Kriter Seti', icon: '📊' },
-    SCALE: { label: 'Harf Skalası', icon: '🔤' }
+    SCALE: { label: 'Harf Skalası', icon: '🔤' },
+    COMMENT: { label: 'Yorum Şikayeti', icon: '💬' }
 };
 
 const ACTION_LABELS = {
@@ -127,7 +128,9 @@ function openDeleteModal(type, itemId, parentId) {
 }
 
 function closeModal() {
-    document.getElementById('admin-modal-container').innerHTML = '';
+    const container = document.getElementById('admin-modal-container');
+    if (container) container.innerHTML = '';
+    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
     currentModalView = 'SELECT_TYPE';
     selectedType = null;
     editingItem = null;
@@ -643,6 +646,7 @@ function saveData(type) {
 
     if (status === 2) {
         addToMainSystem(type, data, parentId);
+        if (typeof saveMockData === 'function') saveMockData();
         alert('Veri başarıyla eklendi ve yayınlandı. ✅');
         if (typeof loadSemesters === 'function') loadSemesters();
     } else {
@@ -656,6 +660,7 @@ function saveData(type) {
             submittedBy: currentUser ? currentUser.userName : 'Misafir',
             timestamp: new Date().toISOString()
         });
+        if (typeof saveMockData === 'function') saveMockData();
         alert('Veri eklendi ve onay için gönderildi. ⏳');
         updatePendingBadge();
     }
@@ -725,6 +730,7 @@ function saveEdit(type) {
     if (isAdminUser()) {
         // Doğrudan güncelle
         applyEdit(type, editingItem.id, editingItem.parentId, updatedData);
+        if (typeof saveMockData === 'function') saveMockData();
         alert('Veri güncellendi. ✅');
         if (typeof loadSemesters === 'function') loadSemesters();
     } else {
@@ -738,6 +744,7 @@ function saveEdit(type) {
             submittedBy: currentUser ? currentUser.userName : 'Misafir',
             timestamp: new Date().toISOString()
         });
+        if (typeof saveMockData === 'function') saveMockData();
         alert('Düzenleme talebi onay için gönderildi. ⏳');
         updatePendingBadge();
     }
@@ -754,6 +761,7 @@ function confirmDelete(type, itemId, parentId) {
     if (isAdminUser()) {
         if (!confirm('Bu veriyi silmek istediğinize emin misiniz?')) return;
         removeFromSystem(type, itemId, parentId);
+        if (typeof saveMockData === 'function') saveMockData();
         alert('Veri silindi. 🗑️');
         if (typeof loadSemesters === 'function') loadSemesters();
     } else {
@@ -767,6 +775,7 @@ function confirmDelete(type, itemId, parentId) {
             submittedBy: currentUser ? currentUser.userName : 'Misafir',
             timestamp: new Date().toISOString()
         });
+        if (typeof saveMockData === 'function') saveMockData();
         alert('Silme talebi onay için gönderildi. ⏳');
         updatePendingBadge();
     }
@@ -860,6 +869,10 @@ function removeFromSystem(type, itemId, parentId) {
         const list = MOCK_DATA.gradeScales[parentId] || [];
         const idx = list.findIndex(x => x.id === itemId);
         if (idx >= 0) list.splice(idx, 1);
+    } else if (type === 'COMMENT') {
+        const comments = MOCK_DATA.comments[parentId] || [];
+        const idx = comments.findIndex(c => c.id === itemId);
+        if (idx >= 0) comments.splice(idx, 1);
     }
 }
 
@@ -877,7 +890,7 @@ function updatePendingBadge() {
         return;
     }
     btn.style.display = 'inline-flex';
-    const count = MOCK_DATA.pendingData.length;
+    const count = (MOCK_DATA.pendingData || []).length;
     document.getElementById('pending-count').textContent = count;
 }
 
@@ -900,7 +913,7 @@ function openPendingModal() {
 
 function renderPendingList() {
     const listBody = document.getElementById('pending-list-body');
-    const list = MOCK_DATA.pendingData;
+    const list = MOCK_DATA.pendingData || [];
 
     if (list.length === 0) {
         listBody.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted)">Bekleyen veri yok. ✅</div>';
@@ -910,22 +923,27 @@ function renderPendingList() {
     let html = '<div class="pending-list">';
     list.forEach((item, index) => {
         const action = ACTION_LABELS[item.action || 'add'];
+        const typeObj = DATA_TYPES[item.type] || { label: item.type || 'Veri', icon: '📋' };
         let details = '';
-        if (item.type === 'UNIVERSITY') details = item.data.name;
-        if (item.type === 'FACULTY') details = item.data.name;
-        if (item.type === 'DEPARTMENT') details = item.data.name;
-        if (item.type === 'COURSE') details = `${item.data.courseCode} - ${item.data.courseName}`;
-        if (item.type === 'CRITERIA') details = `${item.data.label} (${item.data.criteria ? item.data.criteria.length : 0} kriter)`;
-        if (item.type === 'SCALE') details = `${item.data.label} (${item.data.scale ? item.data.scale.length : 0} harf)`;
+
+        if (item.type === 'UNIVERSITY') details = item.data?.name || '';
+        if (item.type === 'FACULTY') details = item.data?.name || '';
+        if (item.type === 'DEPARTMENT') details = item.data?.name || '';
+        if (item.type === 'COURSE') details = `${item.data?.courseCode || ''} - ${item.data?.courseName || ''}`;
+        if (item.type === 'CRITERIA') details = `${item.data?.label || ''}`;
+        if (item.type === 'SCALE') details = `${item.data?.label || ''}`;
+        if (item.type === 'COMMENT') details = `💬 "${item.commentText || ''}"`;
+
+        const submittedUser = item.reportedBy || item.submittedBy || 'Kullanıcı';
 
         html += `
             <div class="pending-item">
                 <div class="pending-header">
                     <div style="display:flex; gap:0.5rem; align-items:center">
                         <span class="pending-action-badge" style="background:${action.color}20; color:${action.color}">${action.icon} ${action.label}</span>
-                        <span class="pending-type">${DATA_TYPES[item.type].label}</span>
+                        <span class="pending-type">${typeObj.label}</span>
                     </div>
-                    <span class="pending-user">${item.submittedBy} • ${new Date(item.timestamp).toLocaleDateString()}</span>
+                    <span class="pending-user">${submittedUser} • ${new Date(item.timestamp).toLocaleDateString()}</span>
                 </div>
                 <div class="pending-details">${details}</div>
                 ${item.message ? `<div class="pending-message">💬 ${item.message}</div>` : ''}
@@ -942,9 +960,13 @@ function renderPendingList() {
 
 function approveItem(index) {
     const item = MOCK_DATA.pendingData[index];
+    if (!item) return;
+
     const action = item.action || 'add';
 
-    if (action === 'add') {
+    if (item.type === 'COMMENT' && action === 'delete') {
+        removeFromSystem('COMMENT', item.commentId, item.courseId);
+    } else if (action === 'add') {
         item.data.status = 2;
         addToMainSystem(item.type, item.data, item.parentId);
     } else if (action === 'edit') {
@@ -954,14 +976,21 @@ function approveItem(index) {
     }
 
     MOCK_DATA.pendingData.splice(index, 1);
+    if (typeof saveMockData === 'function') saveMockData();
+
     renderPendingList();
     updatePendingBadge();
+
     if (typeof loadSemesters === 'function') loadSemesters();
+    if (typeof loadComments === 'function' && typeof currentCourseIdForComments !== 'undefined' && currentCourseIdForComments) {
+        loadComments(currentCourseIdForComments);
+    }
 }
 
 function rejectItem(index) {
     if (!confirm('Talebi reddetmek istediğinize emin misiniz?')) return;
     MOCK_DATA.pendingData.splice(index, 1);
+    if (typeof saveMockData === 'function') saveMockData();
     renderPendingList();
     updatePendingBadge();
 }

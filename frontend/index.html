@@ -8,20 +8,25 @@
     <script>
         // Router Mantığı
         function checkAuth() {
-            const userType = localStorage.getItem('userType');
-            const selectedUni = localStorage.getItem('selectedUniversity');
-            const selectedDept = localStorage.getItem('selectedDepartment');
+            let userType = localStorage.getItem('userType');
+            let selectedUni = localStorage.getItem('selectedUniversity');
+            let selectedDept = localStorage.getItem('selectedDepartment');
 
-            if (!userType) {
-                // Giriş tipi seçilmemiş -> Landing
-                window.location.replace('landing.html');
-            } else if (!selectedUni || !selectedDept) {
-                // Üniversite/Bölüm seçilmemiş -> Wizard
-                window.location.replace('wizard.html');
-            } else {
-                // Her şey tamam -> Ana Sayfa
-                window.location.replace('main.html');
+            if (!selectedUni) {
+                selectedUni = 'itu';
+                localStorage.setItem('selectedUniversity', 'itu');
             }
+            if (!selectedDept) {
+                selectedDept = 'bilgisayar-muhendisligi';
+                localStorage.setItem('selectedDepartment', 'bilgisayar-muhendisligi');
+            }
+            if (!userType) {
+                userType = 'student';
+                localStorage.setItem('userType', 'student');
+            }
+
+            // Her şey hazır -> Doğrudan Ana Sayfaya git
+            window.location.replace('main.html');
         }
 
         checkAuth();

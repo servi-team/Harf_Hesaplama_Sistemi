@@ -9,7 +9,13 @@ function selectUserType(type) {
     localStorage.setItem('userType', type);
     localStorage.removeItem('loggedInUserId');
     localStorage.removeItem('loggedInUserName');
-    window.location.href = 'wizard.html';
+
+    const savedUni = localStorage.getItem('selectedUniversity') || 'itu';
+    const savedDept = localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
+    localStorage.setItem('selectedUniversity', savedUni);
+    localStorage.setItem('selectedDepartment', savedDept);
+
+    window.location.href = 'main.html';
 }
 
 function showLoginForm() {
@@ -58,12 +64,18 @@ function attemptLogin() {
         return;
     }
 
-    // Başarılı giriş — rol otomatik belirlenir
+    // Başarılı giriş — rol otomatik belirlenir ve kayıtlı üniversite/bölüm korunur
     localStorage.setItem('userType', matchedUser.role);
     localStorage.setItem('loggedInUserId', matchedUser.userId);
     localStorage.setItem('loggedInUserName', matchedUser.userName);
 
-    window.location.href = 'wizard.html';
+    const userUni = matchedUser.universityId || localStorage.getItem('selectedUniversity') || 'itu';
+    const userDept = matchedUser.departmentId || localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
+
+    localStorage.setItem('selectedUniversity', userUni);
+    localStorage.setItem('selectedDepartment', userDept);
+
+    window.location.href = 'main.html';
 }
 
 // ==================== DEMO BİLGİLERİ ====================

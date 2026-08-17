@@ -149,6 +149,21 @@
 
     <script src="js/mock-data.js"></script>
     <script src="js/entry.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const selectedUni = localStorage.getItem('selectedUniversity') || 'itu';
+            const selectedDept = localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
+            const isLogout = new URLSearchParams(window.location.search).get('logout') === 'true';
+
+            // Eğer özel olarak 'Çıkış Yap' tıklanıp logout=true ile gelinmediyse, doğrudan ana sayfaya yönlendir!
+            if (!isLogout) {
+                if (!localStorage.getItem('userType')) localStorage.setItem('userType', 'student');
+                localStorage.setItem('selectedUniversity', selectedUni);
+                localStorage.setItem('selectedDepartment', selectedDept);
+                window.location.replace('main.html');
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -432,6 +432,8 @@ const MOCK_DATA = {
             email: 'superadmin@harf.edu.tr',
             password: 'super123',
             role: 'superadmin',   // Tüm yetkilere sahip
+            universityId: 'itu',
+            departmentId: 'bilgisayar-muhendisligi',
             registeredAt: '2024-01-01T00:00:00Z'
         },
         'admin-001': {
@@ -440,6 +442,8 @@ const MOCK_DATA = {
             email: 'admin@ytu.edu.tr',
             password: 'admin123',
             role: 'admin',        // Yorum moderasyonu, veri girişi
+            universityId: 'itu',
+            departmentId: 'bilgisayar-muhendisligi',
             registeredAt: '2024-06-15T10:00:00Z'
         },
         'user-001': {
@@ -448,6 +452,8 @@ const MOCK_DATA = {
             email: 'ali@std.ytu.edu.tr',
             password: '123456',
             role: 'student',
+            universityId: 'itu',
+            departmentId: 'bilgisayar-muhendisligi',
             registeredAt: '2024-09-01T08:00:00Z'
         },
         'user-002': {
@@ -456,6 +462,8 @@ const MOCK_DATA = {
             email: 'zeynep@std.ytu.edu.tr',
             password: '123456',
             role: 'student',
+            universityId: 'itu',
+            departmentId: 'bilgisayar-muhendisligi',
             registeredAt: '2024-09-01T08:30:00Z'
         },
         'user-003': {
@@ -464,6 +472,8 @@ const MOCK_DATA = {
             email: 'mehmet@std.ytu.edu.tr',
             password: '123456',
             role: 'student',
+            universityId: 'itu',
+            departmentId: 'bilgisayar-muhendisligi',
             registeredAt: '2024-09-02T09:00:00Z'
         }
     },
@@ -544,5 +554,41 @@ const MOCK_DATA = {
                 if (item.status === undefined) { item.status = 2; item.addedBy = 'system'; }
             });
         });
+    }
+})();
+
+// ==================== LOCALSTORAGE PERSISTENCE ====================
+function saveMockData() {
+    try {
+        localStorage.setItem('HARF_MOCK_DATA', JSON.stringify(MOCK_DATA));
+        if (MOCK_DATA.mockCurrentUser) {
+            localStorage.setItem('loggedInUserId', MOCK_DATA.mockCurrentUser);
+        }
+        if (typeof updatePendingBadge === 'function') {
+            updatePendingBadge();
+        }
+    } catch (e) {
+        console.error('MOCK_DATA kaydedilemedi:', e);
+    }
+}
+
+(function loadMockDataFromStorage() {
+    try {
+        const saved = localStorage.getItem('HARF_MOCK_DATA');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.universities) MOCK_DATA.universities = parsed.universities;
+            if (parsed.faculties) MOCK_DATA.faculties = parsed.faculties;
+            if (parsed.semesters) MOCK_DATA.semesters = parsed.semesters;
+            if (parsed.gradingCriteria) MOCK_DATA.gradingCriteria = parsed.gradingCriteria;
+            if (parsed.gradeScales) MOCK_DATA.gradeScales = parsed.gradeScales;
+            if (parsed.comments) MOCK_DATA.comments = parsed.comments;
+            if (parsed.mockUsers) MOCK_DATA.mockUsers = parsed.mockUsers;
+            if (parsed.pendingData) MOCK_DATA.pendingData = parsed.pendingData;
+        } else {
+            saveMockData();
+        }
+    } catch (e) {
+        console.error('MOCK_DATA yüklenemedi:', e);
     }
 })();

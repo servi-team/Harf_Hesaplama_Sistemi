@@ -331,14 +331,16 @@ function displayResult(numericGrade, letterGrade, courseId) {
                 </div>
             </div>
             
-            <div style="margin-bottom: 0.75rem;">
-                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Derse Özel Not / Açıklama (İsteğe bağlı):</label>
-                <input type="text" id="result-grade-note-${courseId}" class="custom-input" placeholder="Örn: Bu ders için MAT101 saydırıldı">
+            <div class="result-note-section" style="margin-top: 1rem; padding: 0.85rem 1rem 0.5rem 1.25rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.55rem; width: 100%; box-sizing: border-box; clear: both; position: relative; z-index: 5;">
+                <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; width: 100%;">
+                    <span>📝 Derse Özel Not / Açıklama</span>
+                    <span style="font-size: 0.68rem; font-weight: 400; color: var(--text-muted);">(İsteğe bağlı)</span>
+                </label>
+                <input type="text" id="result-grade-note-${courseId}" class="custom-input" placeholder="Örn: Bu ders için MAT101 saydırıldı" style="width: 100%; padding: 0.6rem 0.8rem; font-size: 0.82rem; border-radius: var(--radius-md); background: var(--bg-dark); border: 1px solid var(--border); box-sizing: border-box;">
+                <button type="button" class="btn-primary" style="width: 100%; margin-top: 0.3rem; padding: 0.65rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md);" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
+                    <span>💾 Notu Kaydet</span>
+                </button>
             </div>
-
-            <button class="btn-primary" style="width: 100%;" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
-                💾 Notu Kaydet
-            </button>
         </div>
     `;
 
@@ -378,14 +380,16 @@ function displayManualResult(numericGrade, letterGrade, courseId) {
                 </div>
             </div>
 
-            <div style="margin-bottom: 0.75rem;">
-                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Derse Özel Not / Açıklama (İsteğe bağlı):</label>
-                <input type="text" id="result-grade-note-${courseId}" class="custom-input" placeholder="Örn: Bu ders için MAT101 saydırıldı">
+            <div class="result-note-section" style="margin-top: 1rem; padding: 0.85rem 1rem 0.5rem 1.25rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.55rem; width: 100%; box-sizing: border-box; clear: both; position: relative; z-index: 5;">
+                <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; width: 100%;">
+                    <span>📝 Derse Özel Not / Açıklama</span>
+                    <span style="font-size: 0.68rem; font-weight: 400; color: var(--text-muted);">(İsteğe bağlı)</span>
+                </label>
+                <input type="text" id="result-grade-note-${courseId}" class="custom-input" placeholder="Örn: Bu ders için MAT101 saydırıldı" style="width: 100%; padding: 0.6rem 0.8rem; font-size: 0.82rem; border-radius: var(--radius-md); background: var(--bg-dark); border: 1px solid var(--border); box-sizing: border-box;">
+                <button type="button" class="btn-primary" style="width: 100%; margin-top: 0.3rem; padding: 0.65rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md);" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
+                    <span>💾 Notu Kaydet</span>
+                </button>
             </div>
-
-            <button class="btn-primary" style="width: 100%;" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
-                💾 Notu Kaydet
-            </button>
         </div>
     `;
 

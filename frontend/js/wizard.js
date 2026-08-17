@@ -11,6 +11,19 @@ let selectedDepartment = null;
 
 
 document.addEventListener('DOMContentLoaded', () => {
+    const isChange = new URLSearchParams(window.location.search).get('change') === 'true';
+    const savedUni = localStorage.getItem('selectedUniversity') || 'itu';
+    const savedDept = localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
+
+    // Eğer kullanıcı özel olarak bölüm değiştir demediyse, sihirbazı atla ve doğrudan ana ekrana git!
+    if (!isChange) {
+        localStorage.setItem('selectedUniversity', savedUni);
+        localStorage.setItem('selectedDepartment', savedDept);
+        if (!localStorage.getItem('userType')) localStorage.setItem('userType', 'student');
+        window.location.replace('main.html');
+        return;
+    }
+
     setupEventListeners();
     updateUI();
 });

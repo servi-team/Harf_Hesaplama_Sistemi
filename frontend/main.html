@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Not Hesaplama - Ana Ekran</title>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/main-screen.css">
-    <link rel="stylesheet" href="css/detail-panel.css">
-    <link rel="stylesheet" href="css/admin-panel.css">
+    <link rel="stylesheet" href="css/main.css?v=99">
+    <link rel="stylesheet" href="css/main-screen.css?v=99">
+    <link rel="stylesheet" href="css/detail-panel.css?v=99">
+    <link rel="stylesheet" href="css/admin-panel.css?v=99">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -63,7 +63,7 @@
                     <span id="user-role-label">Misafir</span>
                 </div>
 
-                <button class="btn-back" onclick="localStorage.clear(); window.location.href='index.html'">
+                <button class="btn-back" onclick="localStorage.removeItem('loggedInUserId'); localStorage.removeItem('loggedInUserName'); localStorage.setItem('userType', 'guest'); window.location.href='landing.html?logout=true'">
                     Çıkış
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         style="margin-left: 5px;">
@@ -97,12 +97,22 @@
             <div class="left-panel-footer">
                 <div class="agno-card-prominent">
                     <div class="agno-info">
-                        <span class="agno-title">GENEL ORTALAMA (AGNO)</span>
+                        <span class="agno-title">AGNO GENEL ORTALAMA</span>
                         <span class="agno-value" id="prominent-agno-value">0.00</span>
                     </div>
-                    <button class="btn-agno-stats" onclick="openStatsModal()" title="Detaylı İstatistikler">📊 Detaylar</button>
+                    <button type="button" class="btn-agno-stats" onclick="openStatsModal()" title="Detaylı İstatistikler">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M18 20V10M12 20V4M6 20v-6"></path>
+                        </svg>
+                        <span>Detaylar</span>
+                    </button>
                 </div>
-                <button class="btn-add-custom-course" onclick="openCustomCourseModal()">➕ Özel Ders / Yan Dal Ekle</button>
+                <button type="button" class="btn-add-custom-course" onclick="openCustomCourseModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                    <span>Özel Ders / Yan Dal Ekle</span>
+                </button>
             </div>
         </div>
 
@@ -128,9 +138,16 @@
         <div class="right-panel unified-right-panel">
             <!-- ÜST: Harf Aralıkları -->
             <div class="right-sub-panel grade-scale-panel" id="grade-scale-panel">
-                <div class="panel-header">
-                    <h2>Harf Skalası</h2>
-                    <select id="scale-year-select" class="custom-select-sm" onchange="onScaleYearChange(this.value)" style="font-size: 0.75rem; padding: 0.2rem 0.4rem; border-radius: 4px; background: var(--bg-dark); color: var(--text-primary); border: 1px solid var(--border);">
+                <div class="panel-header" onclick="toggleSubPanel('grade-scale-panel')" style="cursor: pointer; user-select: none; padding-right: 0.85rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem; min-width: 0;">
+                        <h2 style="margin: 0; white-space: nowrap; font-size: 1rem;">Harf Skalası</h2>
+                        <button type="button" class="btn-toggle-subpanel" title="Aç / Kapat">
+                            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <select id="scale-year-select" class="custom-select-sm" onclick="event.stopPropagation()" onchange="onScaleYearChange(this.value)" style="font-size: 0.72rem; padding: 0.25rem 0.5rem; border-radius: 6px; background: var(--bg-dark); color: var(--text-primary); border: 1px solid var(--border); max-width: 135px; margin-right: 0.35rem; text-overflow: ellipsis;">
                         <option value="current">2024-2025 (Güncel)</option>
                         <option value="2023-2024">2023-2024 Güz (Geçmiş)</option>
                         <option value="2022-2023">2022-2023 Bahar (Geçmiş)</option>
@@ -150,29 +167,38 @@
             </div>
 
             <!-- ALT: Yorumlar -->
-            <div class="right-sub-panel comments-sub-panel">
-                <div class="panel-header">
-                    <h2><span id="comment-count">Yorumlar</span></h2>
-                    <button class="btn-sort-comments" onclick="toggleSortMode()" title="En Çok Beğenilen">🔥</button>
-                </div>
-
-                <div class="comments-list" id="comments-list">
-                    <div class="empty-comments">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32"
-                            height="32" style="opacity: 0.3; margin-bottom: 0.5rem;">
-                            <path
-                                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
-                            </path>
-                        </svg>
-                        <p>Henüz ders seçilmedi.</p>
+            <div class="right-sub-panel comments-sub-panel" id="comments-sub-panel">
+                <div class="panel-header" onclick="toggleSubPanel('comments-sub-panel')" style="cursor: pointer; user-select: none;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
+                        <h2 style="margin: 0; white-space: nowrap;"><span id="comment-count">Yorumlar</span></h2>
+                        <button type="button" class="btn-toggle-subpanel" title="Aç / Kapat">
+                            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
                     </div>
+                    <button class="btn-sort-comments" onclick="event.stopPropagation(); toggleSortMode()" title="En Çok Beğenilen">🔥</button>
                 </div>
 
-                <!-- Yorum Ekleme Formu (User only) -->
-                <div class="comment-form-container" id="comment-form"
-                    style="display:none; padding: 0.75rem; border-top: 1px solid var(--border);">
-                    <textarea class="comment-input" id="new-comment-text" placeholder="Yorumunuzu yazın..." rows="2"></textarea>
-                    <button class="btn-submit-comment" onclick="submitComment()">Gönder</button>
+                <div class="comments-content-wrapper" id="comments-content-wrapper">
+                    <div class="comments-list" id="comments-list">
+                        <div class="empty-comments">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32"
+                                height="32" style="opacity: 0.3; margin-bottom: 0.5rem;">
+                                <path
+                                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                                </path>
+                            </svg>
+                            <p>Henüz ders seçilmedi.</p>
+                        </div>
+                    </div>
+
+                    <!-- Yorum Ekleme Formu (User only) -->
+                    <div class="comment-form-container" id="comment-form"
+                        style="display:none; padding: 0.75rem; border-top: 1px solid var(--border);">
+                        <textarea class="comment-input" id="new-comment-text" placeholder="Yorumunuzu yazın..." rows="2"></textarea>
+                        <button class="btn-submit-comment" onclick="submitComment()">Gönder</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -329,12 +355,12 @@
     <!-- Admin Modal Container -->
     <div id="admin-modal-container"></div>
 
-    <script src="js/mock-data.js"></script>
-    <script src="js/calculator.js"></script>
-    <script src="js/dragdrop.js"></script>
-    <script src="js/comments.js"></script>
-    <script src="js/admin-panel.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/mock-data.js?v=99"></script>
+    <script src="js/calculator.js?v=99"></script>
+    <script src="js/dragdrop.js?v=99"></script>
+    <script src="js/comments.js?v=99"></script>
+    <script src="js/admin-panel.js?v=99"></script>
+    <script src="js/main.js?v=99"></script>
 
     <!-- Kullanıcı Rolünü Script Tarafında da Yönetmek İçin -->
     <script>
@@ -351,12 +377,21 @@
                 const roleMap = {
                     'student': 'Öğrenci',
                     'admin': 'Yönetici',
-                    'superadmin': 'Süper Admin'
+                    'superadmin': 'Sistem Yöneticisi'
                 };
-                roleLabel.textContent = loggedInUserName || roleMap[user.role] || user.userName;
+                if (roleLabel) roleLabel.textContent = loggedInUserName || roleMap[user.role] || user.userName;
+            } else if (userType && userType !== 'guest') {
+                const defaultId = (userType === 'superadmin') ? 'superadmin-001' : ((userType === 'admin') ? 'admin-001' : 'user-001');
+                MOCK_DATA.mockCurrentUser = defaultId;
+                if (roleLabel) roleLabel.textContent = userType === 'superadmin' ? 'Sistem Yöneticisi' : (userType === 'admin' ? 'Yönetici' : 'Öğrenci');
             } else if (userType === 'guest' || !userType) {
                 MOCK_DATA.mockCurrentUser = null;
-                roleLabel.textContent = 'Misafir';
+                if (roleLabel) roleLabel.textContent = 'Misafir';
+            }
+
+            // Yeniden ders listesini render et (Yönetici ikonları görünsün)
+            if (typeof loadSemesters === 'function') {
+                loadSemesters();
             }
 
             // Admin panel rozetini güncelle
