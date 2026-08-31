@@ -83,14 +83,48 @@ function loadCourseDetail(courseId) {
     detailDiv.style.display = 'block';
 
     // Ders için verileri al
-    const criteriaList = MOCK_DATA.gradingCriteria[courseId] || [];
-    const scaleList = MOCK_DATA.gradeScales[courseId] || [];
+    const criteriaList = (MOCK_DATA.gradingCriteria && MOCK_DATA.gradingCriteria[courseId]) || [];
+    const scaleList = (MOCK_DATA.gradeScales && MOCK_DATA.gradeScales[courseId]) || [];
 
     // Detay içeriğini oluştur
     detailDiv.innerHTML = createCourseDetailHTML(course, criteriaList, scaleList);
 
     // Event listener'ları ekle
     setupCourseDetailEvents(courseId, criteriaList, scaleList);
+
+    // İlk yükleme: Kriter tanımlıysa ilkini otomatik yükle
+    if (criteriaList.length > 0) {
+        const criteriaSelect = document.getElementById('criteria-select');
+        if (criteriaSelect) criteriaSelect.value = "0";
+        loadCriteriaContent(criteriaList[0], courseId);
+
+        // Skala da varsa eşleştir
+        if (scaleList.length > 0) {
+            const scaleSelect = document.getElementById('scale-select');
+            if (scaleSelect) scaleSelect.value = "0";
+            loadScaleToRightPanel(scaleList[0]);
+        } else {
+            const scaleSelect = document.getElementById('scale-select');
+            if (scaleSelect) scaleSelect.value = "default";
+            loadScaleToRightPanel({
+                label: 'Varsayılan',
+                scale: MOCK_DATA.defaultGradeScale,
+                totalStudents: null
+            });
+        }
+    } else {
+        const criteriaSelect = document.getElementById('criteria-select');
+        if (criteriaSelect) criteriaSelect.value = "custom";
+        const manualWrapper = document.getElementById('manual-mode-wrapper');
+        if (manualWrapper) manualWrapper.innerHTML = createManualCriteriaHTML(course);
+        const scaleSelect = document.getElementById('scale-select');
+        if (scaleSelect) scaleSelect.value = "default";
+        loadScaleToRightPanel({
+            label: 'Varsayılan',
+            scale: MOCK_DATA.defaultGradeScale,
+            totalStudents: null
+        });
+    }
 }
 
 /**
@@ -155,7 +189,6 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                         </span>` : ''}
                     </label>
                     <select id="criteria-select" class="custom-select">
-                        <option value="">Seçin...</option>
                         ${criteriaList.map((c, i) => `<option value="${i}">${c.label}</option>`).join('')}
                         <option value="custom">✨ Özel - Elle Gir</option>
                     </select>
@@ -169,24 +202,24 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                         </span>` : ''}
                     </label>
                     <select id="scale-select" class="custom-select">
-                        <option value="default">Varsayılan Skala</option>
                         ${scaleList.map((s, i) => `<option value="${i}">${s.label}</option>`).join('')}
+                        <option value="default">Varsayılan Skala</option>
                         <option value="custom">✨ Özel - Elle Gir</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Kriter İçeriği -->
+            <!-- Kriter İçeriği (Tanımlı Kriterler) -->
             <div id="criteria-container">
                 <!-- Seçim yapıldığında doldurulacak -->
             </div>
 
-            <!-- Manuel Hesaplama Kapsayıcısı -->
+            <!-- Manuel Hesaplama Kapsayıcısı (Özel Giriş) -->
             <div id="manual-mode-wrapper">
                 ${!hasCriteria ? createManualCriteriaHTML(course) : ''}
             </div>
 
-            <!-- Sonuç -->
+            <!-- Sonuç Container -->
             <div id="result-container" style="display: none;">
             </div>
         </div>
@@ -246,6 +279,8 @@ function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
             const value = e.target.value;
             const container = document.getElementById('criteria-container');
             const manualWrapper = document.getElementById('manual-mode-wrapper');
+            const resContainer = document.getElementById('result-container');
+            if (resContainer) resContainer.style.display = 'none';
 
             if (value === 'custom') {
                 if (container) container.innerHTML = '';
@@ -255,6 +290,22 @@ function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
                 if (!isNaN(index) && criteriaList[index]) {
                     if (manualWrapper) manualWrapper.innerHTML = '';
                     loadCriteriaContent(criteriaList[index], courseId);
+
+                    // Eşleşen skala varsa scale-select ve sağ paneli de otomatik güncelle
+                    const selectedCriteria = criteriaList[index];
+                    const matchingScaleIndex = scaleList.findIndex(s => 
+                        (s.year && selectedCriteria.year && s.year === selectedCriteria.year) ||
+                        (s.instructorName && selectedCriteria.instructorName && s.instructorName === selectedCriteria.instructorName)
+                    );
+
+                    const scaleSelect = document.getElementById('scale-select');
+                    if (matchingScaleIndex !== -1) {
+                        if (scaleSelect) scaleSelect.value = String(matchingScaleIndex);
+                        loadScaleToRightPanel(scaleList[matchingScaleIndex]);
+                    } else if (scaleList[index]) {
+                        if (scaleSelect) scaleSelect.value = String(index);
+                        loadScaleToRightPanel(scaleList[index]);
+                    }
                 }
             }
         });
@@ -266,7 +317,6 @@ function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
         scaleSelect.addEventListener('change', (e) => {
             const value = e.target.value;
             if (value === 'default') {
-                // Varsayılan skala
                 loadScaleToRightPanel({
                     label: 'Varsayılan',
                     scale: MOCK_DATA.defaultGradeScale,
@@ -284,16 +334,26 @@ function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
                     loadScaleToRightPanel(scaleList[index]);
                 }
             }
+
+            // Eğer sonuç şu an görüntüleniyorsa, skalaya göre harf notunu tekrar hesapla
+            const resultCard = document.querySelector('#result-container .result-card');
+            if (resultCard && document.getElementById('result-container').style.display !== 'none') {
+                if (typeof calculateCriteriaGrade === 'function') {
+                    calculateCriteriaGrade(courseId);
+                }
+            }
         });
     }
 }
 
 /**
- * Değerlendirme kriterlerini yükler
+ * Değerlendirme kriterlerini yükler (Tanımlı Kriterler)
  */
 function loadCriteriaContent(criteriaData, courseId) {
     const container = document.getElementById('criteria-container');
     if (!container) return;
+
+    container.style.display = 'block';
 
     container.innerHTML = `
         <div class="criteria-section">
@@ -304,27 +364,32 @@ function loadCriteriaContent(criteriaData, courseId) {
             <div class="criteria-list">
                 ${criteriaData.criteria.map(c => `
                     <div class="criteria-item">
-                        <div class="criteria-name">${c.name}</div>
+                        <div class="criteria-name">
+                            <span>${c.name}</span>
+                            ${c.minRequiredScore ? `<span class="criteria-min-badge" title="Minimum baraj notu" style="font-size: 0.65rem; color: #f59e0b; font-weight: 600; display: block;">Baraj: ${c.minRequiredScore}</span>` : ''}
+                        </div>
                         <div class="criteria-weight">
                             <div class="criteria-weight-bar" style="width: ${c.weight}%"></div>
                             <span class="criteria-weight-text">%${c.weight}</span>
                         </div>
-                        <input type="number" class="criteria-score" placeholder="Not" min="0" max="100" 
-                               data-weight="${c.weight}" oninput="recalculateGrade('${courseId}')">
+                        <input type="number" class="criteria-score custom-input" placeholder="0-100" min="0" max="100" 
+                               data-name="${c.name}" data-weight="${c.weight}" data-min="${c.minRequiredScore || ''}" 
+                               oninput="recalculateGrade('${courseId}')" onkeydown="if(event.key==='Enter') calculateCriteriaGrade('${courseId}')">
                     </div>
                 `).join('')}
             </div>
+            <button type="button" class="btn-calculate" onclick="calculateCriteriaGrade('${courseId}')">
+                Hesapla
+            </button>
         </div>
     `;
 
-    // Sonuç container'ı göster
-    document.getElementById('result-container').style.display = 'block';
-    document.getElementById('result-container').innerHTML = `
-        <div class="result-card">
-            <div class="result-label">Hesaplanan Ortalama</div>
-            <div class="result-value" id="calculated-avg">—</div>
-        </div>
-    `;
+    // Sonuç container'ı başlangıçta gizle
+    const resultContainer = document.getElementById('result-container');
+    if (resultContainer) {
+        resultContainer.style.display = 'none';
+        resultContainer.innerHTML = '';
+    }
 }
 
 /**

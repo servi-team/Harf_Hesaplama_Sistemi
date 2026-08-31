@@ -51,24 +51,37 @@ function loadOfferingCriteria(offering, courseId) {
 }
 
 /**
- * Tanımlı hoca için not hesaplar (Mod A)
+ * Tanımlı hoca / kriter seti için not hesaplar (Mod A)
  */
-function calculateOfferingGrade(courseId, offering) {
-    const inputs = document.querySelectorAll('.criteria-input');
-    const scores = {};
+function calculateCriteriaGrade(courseId) {
+    const inputs = document.querySelectorAll('#criteria-container .criteria-score, #criteria-container .criteria-input');
+    if (!inputs || inputs.length === 0) {
+        showError('Hesaplanacak kriter bulunamadı');
+        return;
+    }
+
     let allFilled = true;
+    let totalScore = 0;
+    let failedMinScore = false;
+    let failedMinInfo = '';
 
-    // Skorları topla
     inputs.forEach(input => {
-        const criterionName = input.dataset.criterion;
-        const value = parseFloat(input.value);
+        const val = parseFloat(input.value);
+        const name = input.dataset.name || input.dataset.criterion || 'Kriter';
+        const weight = parseFloat(input.dataset.weight) || 0;
+        const minVal = input.dataset.min && input.dataset.min !== '' ? parseFloat(input.dataset.min) : NaN;
 
-        if (isNaN(value) || value < 0 || value > 100) {
+        if (isNaN(val) || val < 0 || val > 100) {
             allFilled = false;
             input.classList.add('error');
         } else {
             input.classList.remove('error');
-            scores[criterionName] = value;
+            totalScore += val * (weight / 100);
+
+            if (!isNaN(minVal) && val < minVal) {
+                failedMinScore = true;
+                failedMinInfo = `${name} baraj notunu (${minVal}) geçemediniz!`;
+            }
         }
     });
 
@@ -77,32 +90,50 @@ function calculateOfferingGrade(courseId, offering) {
         return;
     }
 
-    // Ağırlıklı ortalama & Baraj kontrolü
-    let totalScore = 0;
-    let failedMinScore = false;
-    let failedMinInfo = '';
+    // Aktif harf skalasını belirle
+    const scaleSelect = document.getElementById('scale-select');
+    const scaleVal = scaleSelect ? scaleSelect.value : 'default';
+    const scaleList = (typeof MOCK_DATA !== 'undefined' && MOCK_DATA.gradeScales && MOCK_DATA.gradeScales[courseId]) || [];
+    let activeScale = (typeof MOCK_DATA !== 'undefined' && MOCK_DATA.defaultGradeScale) || [
+        { letterGrade: 'AA', minScore: 90, maxScore: 100, gradePoint: 4.0 },
+        { letterGrade: 'BA', minScore: 85, maxScore: 89, gradePoint: 3.5 },
+        { letterGrade: 'BB', minScore: 80, maxScore: 84, gradePoint: 3.0 },
+        { letterGrade: 'CB', minScore: 75, maxScore: 79, gradePoint: 2.5 },
+        { letterGrade: 'CC', minScore: 70, maxScore: 74, gradePoint: 2.0 },
+        { letterGrade: 'DC', minScore: 65, maxScore: 69, gradePoint: 1.5 },
+        { letterGrade: 'DD', minScore: 60, maxScore: 64, gradePoint: 1.0 },
+        { letterGrade: 'FD', minScore: 50, maxScore: 59, gradePoint: 0.5 },
+        { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0 }
+    ];
 
-    offering.gradingCriteria.forEach(criterion => {
-        const score = scores[criterion.name] || 0;
-        totalScore += score * (criterion.weight / 100);
-
-        if (criterion.minRequiredScore !== undefined && score < criterion.minRequiredScore) {
-            failedMinScore = true;
-            failedMinInfo = `${criterion.name} baraj notunu (${criterion.minRequiredScore}) geçemediniz!`;
+    if (scaleVal !== 'default' && scaleVal !== 'custom') {
+        const scaleIdx = parseInt(scaleVal);
+        if (!isNaN(scaleIdx) && scaleList[scaleIdx] && scaleList[scaleIdx].scale) {
+            activeScale = scaleList[scaleIdx].scale;
         }
-    });
+    }
 
     let letterGradeObj;
     if (failedMinScore) {
         letterGradeObj = { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0, warning: failedMinInfo };
     } else {
-        letterGradeObj = offering.gradingScale.find(scale =>
+        letterGradeObj = activeScale.find(scale =>
             totalScore >= scale.minScore && totalScore <= scale.maxScore
         ) || { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0 };
     }
 
     // Sonucu göster
     displayResult(totalScore, letterGradeObj, courseId);
+    if (typeof highlightGradeRow === 'function') {
+        highlightGradeRow(letterGradeObj.letterGrade);
+    }
+}
+
+/**
+ * Geriye dönük uyumluluk için offering hesaplama fonksiyonu
+ */
+function calculateOfferingGrade(courseId, offering) {
+    calculateCriteriaGrade(courseId);
 }
 
 /**
@@ -305,6 +336,14 @@ function displayResult(numericGrade, letterGrade, courseId) {
     const container = document.getElementById('result-container');
     if (!container) return;
 
+    const uni = localStorage.getItem('selectedUniversity') || 'genel';
+    const dept = localStorage.getItem('selectedDepartment') || 'genel';
+    let gradeNotes = {};
+    try {
+        gradeNotes = JSON.parse(localStorage.getItem(`gradeNotes_${uni}_${dept}`) || '{}');
+    } catch(e) {}
+    const existingNote = gradeNotes[courseId] || '';
+
     container.style.display = 'block';
     container.innerHTML = `
         <div class="result-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-top: 1rem;">
@@ -336,7 +375,7 @@ function displayResult(numericGrade, letterGrade, courseId) {
                     <span>📝 Derse Özel Not / Açıklama</span>
                     <span style="font-size: 0.68rem; font-weight: 400; color: var(--text-muted);">(İsteğe bağlı)</span>
                 </label>
-                <input type="text" id="result-grade-note-${courseId}" class="custom-input" placeholder="Örn: Bu ders için MAT101 saydırıldı" style="width: 100%; padding: 0.6rem 0.8rem; font-size: 0.82rem; border-radius: var(--radius-md); background: var(--bg-dark); border: 1px solid var(--border); box-sizing: border-box;">
+                <input type="text" id="result-grade-note-${courseId}" class="custom-input" value="${existingNote.replace(/"/g, '&quot;')}" placeholder="Örn: Bu ders için MAT101 saydırıldı" style="width: 100%; padding: 0.6rem 0.8rem; font-size: 0.82rem; border-radius: var(--radius-md); background: var(--bg-dark); border: 1px solid var(--border); box-sizing: border-box;">
                 <button type="button" class="btn-primary" style="width: 100%; margin-top: 0.3rem; padding: 0.65rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md);" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
                     <span>💾 Notu Kaydet</span>
                 </button>
@@ -353,6 +392,14 @@ function displayResult(numericGrade, letterGrade, courseId) {
 function displayManualResult(numericGrade, letterGrade, courseId) {
     const container = document.getElementById('manual-result');
     if (!container) return;
+
+    const uni = localStorage.getItem('selectedUniversity') || 'genel';
+    const dept = localStorage.getItem('selectedDepartment') || 'genel';
+    let gradeNotes = {};
+    try {
+        gradeNotes = JSON.parse(localStorage.getItem(`gradeNotes_${uni}_${dept}`) || '{}');
+    } catch(e) {}
+    const existingNote = gradeNotes[courseId] || '';
 
     container.style.display = 'block';
     container.innerHTML = `
@@ -385,7 +432,7 @@ function displayManualResult(numericGrade, letterGrade, courseId) {
                     <span>📝 Derse Özel Not / Açıklama</span>
                     <span style="font-size: 0.68rem; font-weight: 400; color: var(--text-muted);">(İsteğe bağlı)</span>
                 </label>
-                <input type="text" id="result-grade-note-${courseId}" class="custom-input" placeholder="Örn: Bu ders için MAT101 saydırıldı" style="width: 100%; padding: 0.6rem 0.8rem; font-size: 0.82rem; border-radius: var(--radius-md); background: var(--bg-dark); border: 1px solid var(--border); box-sizing: border-box;">
+                <input type="text" id="result-grade-note-${courseId}" class="custom-input" value="${existingNote.replace(/"/g, '&quot;')}" placeholder="Örn: Bu ders için MAT101 saydırıldı" style="width: 100%; padding: 0.6rem 0.8rem; font-size: 0.82rem; border-radius: var(--radius-md); background: var(--bg-dark); border: 1px solid var(--border); box-sizing: border-box;">
                 <button type="button" class="btn-primary" style="width: 100%; margin-top: 0.3rem; padding: 0.65rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md);" onclick="saveGradeToList('${courseId}', '${letterGrade.letterGrade}')">
                     <span>💾 Notu Kaydet</span>
                 </button>
@@ -401,14 +448,15 @@ function displayManualResult(numericGrade, letterGrade, courseId) {
  */
 function saveGradeToList(courseId, letterGrade) {
     const noteInput = document.getElementById(`result-grade-note-${courseId}`);
+    const uni = localStorage.getItem('selectedUniversity') || 'genel';
+    const dept = localStorage.getItem('selectedDepartment') || 'genel';
+    let gradeNotes = {};
+    try {
+        gradeNotes = JSON.parse(localStorage.getItem(`gradeNotes_${uni}_${dept}`) || '{}');
+    } catch(e) {}
+
     if (noteInput && noteInput.value.trim() !== '') {
         const noteText = noteInput.value.trim();
-        const uni = localStorage.getItem('selectedUniversity') || 'genel';
-        const dept = localStorage.getItem('selectedDepartment') || 'genel';
-        let gradeNotes = {};
-        try {
-            gradeNotes = JSON.parse(localStorage.getItem(`gradeNotes_${uni}_${dept}`) || '{}');
-        } catch(e) {}
         gradeNotes[courseId] = noteText;
         localStorage.setItem(`gradeNotes_${uni}_${dept}`, JSON.stringify(gradeNotes));
     }
@@ -422,6 +470,31 @@ function saveGradeToList(courseId, letterGrade) {
     // onGradeChange fonksiyonunu çağır
     if (typeof onGradeChange === 'function') {
         onGradeChange(courseId, letterGrade);
+    }
+
+    // Açık olan akordiyonların ID'lerini sakla ve sol paneli yenile
+    const openSemesterIds = Array.from(document.querySelectorAll('.semester-accordion.open')).map(el => el.dataset.semesterId);
+
+    if (typeof renderSemesters === 'function') {
+        renderSemesters();
+        openSemesterIds.forEach(id => {
+            const acc = document.querySelector(`[data-semester-id="${id}"]`);
+            if (acc) acc.classList.add('open');
+        });
+
+        // Seçili dersin bulunduğu dönemi de açık tut
+        if (typeof findCourseById === 'function' && typeof semesters !== 'undefined') {
+            const course = findCourseById(courseId);
+            if (course) {
+                for (const sem of semesters) {
+                    if (sem.courses.some(c => c.id === courseId)) {
+                        const acc = document.querySelector(`[data-semester-id="${sem.id}"]`);
+                        if (acc) acc.classList.add('open');
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     showSuccess(`Not (${letterGrade}) başarıyla kaydedildi!`);
