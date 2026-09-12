@@ -280,11 +280,15 @@ function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
                     totalStudents: null
                 });
             } else if (value === 'custom') {
-                loadScaleToRightPanel({
-                    label: 'Özel Skala',
-                    scale: MOCK_DATA.defaultGradeScale,
-                    totalStudents: null
-                });
+                if (typeof openAddModal === 'function' && currentSelectedCourseId) {
+                    openAddModal('SCALE', currentSelectedCourseId);
+                } else {
+                    loadScaleToRightPanel({
+                        label: 'Özel Skala',
+                        scale: MOCK_DATA.defaultGradeScale,
+                        totalStudents: null
+                    });
+                }
             } else {
                 const index = parseInt(value);
                 if (!isNaN(index) && scaleList[index]) {
