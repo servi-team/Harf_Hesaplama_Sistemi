@@ -338,12 +338,12 @@ function loadCriteriaContent(criteriaData, courseId) {
     if (resultBox) {
         resultBox.style.display = 'block';
         resultBox.innerHTML = `
-            <div class="calculated-result-wrapper" style="display: flex; gap: 0.75rem; align-items: center; width: 100%; margin-top: 1rem;">
-                <div class="result-card" style="flex: 1; margin: 0;">
-                    <div class="result-label">HESAPLANAN ORTALAMA</div>
-                    <div class="result-value" id="calculated-avg">—</div>
+            <div class="calculated-result-wrapper" style="display: flex; gap: 0.75rem; align-items: stretch; width: 100%; margin-top: 1rem;">
+                <div class="result-card" style="flex: 1; margin: 0; padding: 1.1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div class="result-label" style="margin: 0; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">HESAPLANAN ORTALAMA</div>
+                    <div class="result-value" id="calculated-avg" style="margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1;">—</div>
                 </div>
-                <button type="button" class="btn-primary btn-save-calculated" onclick="saveCalculatedGradeToGPA('${courseId}')" style="padding: 0.85rem 1.25rem; font-size: 0.88rem; font-weight: 600; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); height: 100%; border: none; cursor: pointer; transition: all var(--transition-fast);">
+                <button type="button" class="btn-primary btn-save-calculated" onclick="saveCalculatedGradeToGPA('${courseId}')" style="min-width: 170px; padding: 0 1.25rem; font-size: 0.88rem; font-weight: 600; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: none; cursor: pointer; transition: all var(--transition-fast); align-self: stretch;">
                     <span>💾 Notu Kaydet</span>
                 </button>
             </div>
@@ -369,7 +369,7 @@ function loadScaleToRightPanel(scaleData) {
         </div>
         <div class="grade-scale-table">
             ${scaleData.scale.map(g => `
-                <div class="grade-row" data-letter="${g.letterGrade}">
+                <div class="grade-row" data-letter="${g.letterGrade}" data-min="${g.minScore}" data-max="${g.maxScore}">
                     <span class="grade-letter">${g.letterGrade}</span>
                     <span class="grade-range">${g.minScore} – ${g.maxScore}</span>
                     ${g.studentCount !== null ? `
@@ -544,29 +544,40 @@ function saveCalculatedGradeToGPA(courseId) {
         return;
     }
 
-    // Harf skalasını belirle (Sağ paneldeki aktif skalayı veya MOCK_DATA'yı oku)
-    let scale = MOCK_DATA.defaultGradeScale;
-    const scaleList = MOCK_DATA.gradeScales[courseId] || [];
-    const scaleSelect = document.getElementById('scale-select');
-    if (scaleSelect && scaleSelect.value !== 'default' && scaleSelect.value !== 'custom') {
-        const idx = parseInt(scaleSelect.value);
-        if (!isNaN(idx) && scaleList[idx] && scaleList[idx].scale) {
-            scale = scaleList[idx].scale;
-        }
-    } else if (scaleList.length > 0 && scaleList[0].scale) {
-        scale = scaleList[0].scale;
-    }
+    // Sağ panelde ekranda görünen aktif Harf Skalası satırlarını oku
+    let letterGrade = null;
+    const gradeRows = document.querySelectorAll('#grade-scale-content .grade-row');
 
-    // Harf notunu eşleştir
-    let letterGrade = 'FF';
-    for (const item of scale) {
-        if (numericGrade >= item.minScore && numericGrade <= item.maxScore) {
-            letterGrade = item.letterGrade;
-            break;
+    if (gradeRows.length > 0) {
+        for (const row of gradeRows) {
+            const minScore = parseFloat(row.dataset.min);
+            const maxScore = parseFloat(row.dataset.max);
+            const letter = row.dataset.letter;
+            if (!isNaN(minScore) && !isNaN(maxScore) && numericGrade >= minScore && numericGrade <= maxScore) {
+                letterGrade = letter;
+                break;
+            }
         }
     }
 
-    // Harf notunu sol paneldeki listeye ve localStorage'a kaydet
+    // Fallback: MOCK_DATA skalası
+    if (!letterGrade) {
+        let scale = MOCK_DATA.defaultGradeScale;
+        const scaleList = MOCK_DATA.gradeScales[courseId] || [];
+        if (scaleList.length > 0 && scaleList[0].scale) {
+            scale = scaleList[0].scale;
+        }
+        for (const item of scale) {
+            if (numericGrade >= item.minScore && numericGrade <= item.maxScore) {
+                letterGrade = item.letterGrade;
+                break;
+            }
+        }
+    }
+
+    if (!letterGrade) letterGrade = 'FF';
+
+    // Sol paneldeki harf notunu güncelle ve kaydet
     if (typeof onGradeChange === 'function') {
         onGradeChange(courseId, letterGrade);
     }
@@ -585,5 +596,5 @@ function saveCalculatedGradeToGPA(courseId) {
     // Bildirim ver
     const course = findCourseById(courseId);
     const codeName = course ? `${course.courseCode} (${course.courseName})` : courseId;
-    alert(`✅ ${codeName}\nOrtalama: ${numericGrade.toFixed(1)} → Harf Notu: ${letterGrade}\nGenel AGNO ortalamanıza başarıyla kaydedildi!`);
+    alert(`✅ ${codeName}\nOrtalama: ${numericGrade.toFixed(1)} → Harf Notu: ${letterGrade}\nSağdaki harf skalasına göre eşleştirildi ve genel AGNO ortalamanıza başarıyla kaydedildi!`);
 }
