@@ -295,6 +295,13 @@ function loadCriteriaContent(criteriaData, courseId) {
     const container = document.getElementById('criteria-container');
     if (!container) return;
 
+    const uni = localStorage.getItem('selectedUniversity') || 'genel';
+    const dept = localStorage.getItem('selectedDepartment') || 'genel';
+    let savedScores = {};
+    try {
+        savedScores = JSON.parse(localStorage.getItem(`savedScores_${uni}_${dept}_${courseId}`) || '{}');
+    } catch(e) {}
+
     container.innerHTML = `
         <div class="criteria-section">
             <div class="criteria-header-info">
@@ -302,7 +309,7 @@ function loadCriteriaContent(criteriaData, courseId) {
                 <span class="criteria-year">${criteriaData.year}</span>
             </div>
             <div class="criteria-list">
-                ${criteriaData.criteria.map(c => `
+                ${criteriaData.criteria.map((c, idx) => `
                     <div class="criteria-item">
                         <div class="criteria-name">${c.name}</div>
                         <div class="criteria-weight">
@@ -310,21 +317,34 @@ function loadCriteriaContent(criteriaData, courseId) {
                             <span class="criteria-weight-text">%${c.weight}</span>
                         </div>
                         <input type="number" class="criteria-score" placeholder="Not" min="0" max="100" 
-                               data-weight="${c.weight}" oninput="recalculateGrade('${courseId}')">
+                               data-weight="${c.weight}" data-criterion-idx="${idx}"
+                               value="${savedScores[idx] !== undefined ? savedScores[idx] : ''}"
+                               oninput="recalculateGrade('${courseId}')">
                     </div>
                 `).join('')}
             </div>
         </div>
     `;
 
-    // Sonuç container'ı göster
-    document.getElementById('result-container').style.display = 'block';
-    document.getElementById('result-container').innerHTML = `
-        <div class="result-card">
-            <div class="result-label">Hesaplanan Ortalama</div>
-            <div class="result-value" id="calculated-avg">—</div>
-        </div>
-    `;
+    // Sonuç container'ı göster ve "Notu Kaydet" butonunu yanına ekle
+    const resultBox = document.getElementById('result-container');
+    if (resultBox) {
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `
+            <div class="calculated-result-wrapper" style="display: flex; gap: 0.75rem; align-items: center; width: 100%; margin-top: 1rem;">
+                <div class="result-card" style="flex: 1; margin: 0;">
+                    <div class="result-label">HESAPLANAN ORTALAMA</div>
+                    <div class="result-value" id="calculated-avg">—</div>
+                </div>
+                <button type="button" class="btn-primary btn-save-calculated" onclick="saveCalculatedGradeToGPA('${courseId}')" style="padding: 0.85rem 1.25rem; font-size: 0.88rem; font-weight: 600; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); height: 100%; border: none; cursor: pointer; transition: all var(--transition-fast);">
+                    <span>💾 Notu Kaydet</span>
+                </button>
+            </div>
+        `;
+    }
+
+    // Kayıtlı notlar varsa ortalamayı hemen hesapla
+    setTimeout(() => recalculateGrade(courseId), 50);
 }
 
 /**
@@ -391,16 +411,18 @@ function recalculateGrade(courseId) {
     const inputs = document.querySelectorAll('.criteria-score');
     let totalWeight = 0;
     let weightedSum = 0;
-    let allFilled = true;
+    let scoresToSave = {};
 
     inputs.forEach(input => {
         const weight = parseFloat(input.dataset.weight);
         const score = parseFloat(input.value);
+        const idx = input.dataset.criterionIdx;
         if (!isNaN(score) && score >= 0) {
             weightedSum += score * (weight / 100);
             totalWeight += weight;
-        } else {
-            allFilled = false;
+            if (idx !== undefined) {
+                scoresToSave[idx] = score;
+            }
         }
     });
 
@@ -412,6 +434,15 @@ function recalculateGrade(courseId) {
         } else {
             avgEl.textContent = '—';
         }
+    }
+
+    // Girilen notları ders özelinde localStorage'a kaydet
+    if (Object.keys(scoresToSave).length > 0) {
+        try {
+            const uni = localStorage.getItem('selectedUniversity') || 'genel';
+            const dept = localStorage.getItem('selectedDepartment') || 'genel';
+            localStorage.setItem(`savedScores_${uni}_${dept}_${courseId}`, JSON.stringify(scoresToSave));
+        } catch(e) {}
     }
 }
 
@@ -485,4 +516,67 @@ function deleteSelectedScale(courseId) {
     const list = MOCK_DATA.gradeScales[courseId] || [];
     const item = list[Number(idx)];
     if (item && typeof openDeleteModal === 'function') openDeleteModal('SCALE', item.id, courseId);
+}
+
+// ==================== SAVE CALCULATED GRADE TO GPA ====================
+
+/**
+ * Hesaplanan ortalamayı sağ paneldeki harf skalasına göre harf notuna dönüştürür,
+ * ders notunu ve sol alttaki genel ortalamayı (AGNO) günceller ve kaydeder.
+ */
+function saveCalculatedGradeToGPA(courseId) {
+    const avgEl = document.getElementById('calculated-avg');
+    if (!avgEl || avgEl.textContent === '—') {
+        alert('Lütfen önce sınav notlarınızı giriniz.');
+        return;
+    }
+
+    const numericGrade = parseFloat(avgEl.textContent);
+    if (isNaN(numericGrade)) {
+        alert('Geçerli bir ortalama bulunamadı.');
+        return;
+    }
+
+    // Harf skalasını belirle (Sağ paneldeki aktif skalayı veya MOCK_DATA'yı oku)
+    let scale = MOCK_DATA.defaultGradeScale;
+    const scaleList = MOCK_DATA.gradeScales[courseId] || [];
+    const scaleSelect = document.getElementById('scale-select');
+    if (scaleSelect && scaleSelect.value !== 'default' && scaleSelect.value !== 'custom') {
+        const idx = parseInt(scaleSelect.value);
+        if (!isNaN(idx) && scaleList[idx] && scaleList[idx].scale) {
+            scale = scaleList[idx].scale;
+        }
+    } else if (scaleList.length > 0 && scaleList[0].scale) {
+        scale = scaleList[0].scale;
+    }
+
+    // Harf notunu eşleştir
+    let letterGrade = 'FF';
+    for (const item of scale) {
+        if (numericGrade >= item.minScore && numericGrade <= item.maxScore) {
+            letterGrade = item.letterGrade;
+            break;
+        }
+    }
+
+    // Harf notunu sol paneldeki listeye ve localStorage'a kaydet
+    if (typeof onGradeChange === 'function') {
+        onGradeChange(courseId, letterGrade);
+    }
+
+    // Sol paneldeki select öğesini güncelle
+    const select = document.querySelector(`.grade-select[data-course-id="${courseId}"]`);
+    if (select) {
+        select.value = letterGrade;
+    }
+
+    // Harf skalasında ilgili satırı vurgula
+    if (typeof highlightGradeRow === 'function') {
+        highlightGradeRow(letterGrade);
+    }
+
+    // Bildirim ver
+    const course = findCourseById(courseId);
+    const codeName = course ? `${course.courseCode} (${course.courseName})` : courseId;
+    alert(`✅ ${codeName}\nOrtalama: ${numericGrade.toFixed(1)} → Harf Notu: ${letterGrade}\nGenel AGNO ortalamanıza başarıyla kaydedildi!`);
 }
