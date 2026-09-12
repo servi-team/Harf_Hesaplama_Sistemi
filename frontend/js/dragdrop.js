@@ -91,6 +91,13 @@ function loadCourseDetail(courseId) {
 
     // Event listener'ları ekle
     setupCourseDetailEvents(courseId, criteriaList, scaleList);
+
+    // Tanımlı kriter varsa ilk kriteri otomatik yükle
+    if (criteriaList.length > 0) {
+        const criteriaSelect = document.getElementById('criteria-select');
+        if (criteriaSelect) criteriaSelect.value = '0';
+        loadCriteriaContent(criteriaList[0], courseId);
+    }
 }
 
 /**
