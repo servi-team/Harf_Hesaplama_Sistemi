@@ -592,3 +592,16 @@ function saveMockData() {
         console.error('MOCK_DATA yüklenemedi:', e);
     }
 })();
+
+/**
+ * Global HTML Sanitization / Escape Helper
+ */
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}

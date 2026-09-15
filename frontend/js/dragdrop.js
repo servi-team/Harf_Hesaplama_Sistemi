@@ -129,15 +129,15 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
     return `
         <div class="detail-header">
             <div class="detail-header-content">
-                <div class="detail-course-code">${course.courseCode}</div>
-                <h2 class="detail-course-name">${course.courseName}</h2>
+                <div class="detail-course-code">${escapeHtml(course.courseCode)}</div>
+                <h2 class="detail-course-name">${escapeHtml(course.courseName)}</h2>
                 <div class="detail-course-meta">
                     ${course.credit} Kredi • ${course.ects} AKTS
-                    <button class="btn-action-sm" onclick="openReportCourseModal('${course.id}')" title="Ders Müfredattan Kaldırıldı Bildir" style="margin-left: 0.5rem; background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: 0.7rem; cursor: pointer;">⚠️ Kaldırıldı Bildir</button>
+                    <button class="btn-action-sm" onclick="openReportCourseModal('${escapeHtml(course.id)}')" title="Ders Müfredattan Kaldırıldı Bildir" style="margin-left: 0.5rem; background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: 0.7rem; cursor: pointer;">⚠️ Kaldırıldı Bildir</button>
                     ${isLoggedIn ? `
                     <span class="detail-admin-actions">
-                        <button class="btn-action-sm btn-edit-sm" onclick="openEditModal('COURSE','${course.id}','${deptId}')" title="Dersi Düzenle">✏️</button>
-                        <button class="btn-action-sm btn-delete-sm" onclick="openDeleteModal('COURSE','${course.id}','${deptId}')" title="Dersi Sil">🗑️</button>
+                        <button class="btn-action-sm btn-edit-sm" onclick="openEditModal('COURSE','${escapeHtml(course.id)}','${escapeHtml(deptId || '')}')" title="Dersi Düzenle">✏️</button>
+                        <button class="btn-action-sm btn-delete-sm" onclick="openDeleteModal('COURSE','${escapeHtml(course.id)}','${escapeHtml(deptId || '')}')" title="Dersi Sil">🗑️</button>
                     </span>
                     ` : ''}
                 </div>
@@ -157,13 +157,13 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                     <label>📊 Değerlendirme Kriteri
                         ${isLoggedIn && hasCriteria ? `
                         <span class="selector-actions">
-                            <button class="btn-action-xs" onclick="editSelectedCriteria('${course.id}')" title="Düzenle">✏️</button>
-                            <button class="btn-action-xs" onclick="deleteSelectedCriteria('${course.id}')" title="Sil">🗑️</button>
+                            <button class="btn-action-xs" onclick="editSelectedCriteria('${escapeHtml(course.id)}')" title="Düzenle">✏️</button>
+                            <button class="btn-action-xs" onclick="deleteSelectedCriteria('${escapeHtml(course.id)}')" title="Sil">🗑️</button>
                         </span>` : ''}
                     </label>
                     <select id="criteria-select" class="custom-select">
                         <option value="">Seçin...</option>
-                        ${criteriaList.map((c, i) => `<option value="${i}">${c.label}</option>`).join('')}
+                        ${criteriaList.map((c, i) => `<option value="${i}">${escapeHtml(c.label)}</option>`).join('')}
                         <option value="custom">✨ Özel - Elle Gir</option>
                     </select>
                 </div>
@@ -171,13 +171,13 @@ function createCourseDetailHTML(course, criteriaList, scaleList) {
                     <label>🔤 Harf Skalası
                         ${isLoggedIn && hasScales ? `
                         <span class="selector-actions">
-                            <button class="btn-action-xs" onclick="editSelectedScale('${course.id}')" title="Düzenle">✏️</button>
-                            <button class="btn-action-xs" onclick="deleteSelectedScale('${course.id}')" title="Sil">🗑️</button>
+                            <button class="btn-action-xs" onclick="editSelectedScale('${escapeHtml(course.id)}')" title="Düzenle">✏️</button>
+                            <button class="btn-action-xs" onclick="deleteSelectedScale('${escapeHtml(course.id)}')" title="Sil">🗑️</button>
                         </span>` : ''}
                     </label>
                     <select id="scale-select" class="custom-select">
                         <option value="default">Varsayılan Skala</option>
-                        ${scaleList.map((s, i) => `<option value="${i}">${s.label}</option>`).join('')}
+                        ${scaleList.map((s, i) => `<option value="${i}">${escapeHtml(s.label)}</option>`).join('')}
                         <option value="custom">✨ Özel - Elle Gir</option>
                     </select>
                 </div>
@@ -310,19 +310,16 @@ function loadCriteriaContent(criteriaData, courseId) {
     const dept = localStorage.getItem('selectedDepartment') || 'genel';
     let savedScores = {};
     try {
-        savedScores = JSON.parse(localStorage.getItem(`savedScores_${uni}_${dept}_${courseId}`) || '{}');
-    } catch(e) {}
-
-    container.innerHTML = `
+     container.innerHTML = `
         <div class="criteria-section">
             <div class="criteria-header-info">
-                <span class="criteria-instructor">${criteriaData.instructorName}</span>
+                <span class="criteria-instructor">${escapeHtml(criteriaData.instructorName)}</span>
                 <span class="criteria-year">${criteriaData.year}</span>
             </div>
             <div class="criteria-list">
                 ${criteriaData.criteria.map((c, idx) => `
                     <div class="criteria-item">
-                        <div class="criteria-name">${c.name}</div>
+                        <div class="criteria-name">${escapeHtml(c.name)}</div>
                         <div class="criteria-weight">
                             <div class="criteria-weight-bar" style="width: ${c.weight}%"></div>
                             <span class="criteria-weight-text">%${c.weight}</span>
@@ -330,7 +327,7 @@ function loadCriteriaContent(criteriaData, courseId) {
                         <input type="number" class="criteria-score" placeholder="Not" min="0" max="100" 
                                data-weight="${c.weight}" data-criterion-idx="${idx}"
                                value="${savedScores[idx] !== undefined ? savedScores[idx] : ''}"
-                               oninput="recalculateGrade('${courseId}')">
+                               oninput="recalculateGrade('${escapeHtml(courseId)}')">
                     </div>
                 `).join('')}
             </div>
@@ -347,7 +344,7 @@ function loadCriteriaContent(criteriaData, courseId) {
                     <div class="result-label" style="margin: 0; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">HESAPLANAN ORTALAMA</div>
                     <div class="result-value" id="calculated-avg" style="margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1;">—</div>
                 </div>
-                <button type="button" class="btn-primary btn-save-calculated" onclick="saveCalculatedGradeToGPA('${courseId}')" style="min-width: 170px; padding: 0 1.25rem; font-size: 0.88rem; font-weight: 600; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: none; cursor: pointer; transition: all var(--transition-fast); align-self: stretch;">
+                <button type="button" class="btn-primary btn-save-calculated" onclick="saveCalculatedGradeToGPA('${escapeHtml(courseId)}')" style="min-width: 170px; padding: 0 1.25rem; font-size: 0.88rem; font-weight: 600; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: none; cursor: pointer; transition: all var(--transition-fast); align-self: stretch;">
                     <span>💾 Notu Kaydet</span>
                 </button>
             </div>
@@ -369,6 +366,8 @@ function loadScaleToRightPanel(scaleData) {
 
     container.innerHTML = `
         <div class="grade-scale-info" style="font-size: 0.65rem; color: var(--text-muted); padding: 0.25rem 0.5rem; margin-bottom: 0.25rem;">
+            ${escapeHtml(scaleData.label)}${scaleData.totalStudents ? ` • ${scaleData.totalStudents} öğrenci` : ''}
+        </div>`gin-bottom: 0.25rem;">
             ${scaleData.label}${scaleData.totalStudents ? ` • ${scaleData.totalStudents} öğrenci` : ''}
         </div>
         <div class="grade-scale-table">

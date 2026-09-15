@@ -109,10 +109,10 @@ function showDemoCredentials() {
     for (const userId in users) {
         const u = users[userId];
         html += `
-            <div class="demo-user" onclick="fillCredentials('${u.email}', '${u.password}')">
-                <span class="demo-name">${u.userName}</span>
-                <span class="demo-email">${u.email}</span>
-                <span class="demo-badge">${roleLabels[u.role] || u.role}</span>
+            <div class="demo-user" onclick="fillCredentials('${escapeHtml(u.email)}', '${escapeHtml(u.password)}')">
+                <span class="demo-name">${escapeHtml(u.userName)}</span>
+                <span class="demo-email">${escapeHtml(u.email)}</span>
+                <span class="demo-badge">${roleLabels[u.role] || escapeHtml(u.role)}</span>
             </div>
         `;
     }

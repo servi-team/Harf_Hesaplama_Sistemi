@@ -77,9 +77,9 @@ function createSemesterElement(semester) {
     const courseCount = semester.courses.length;
 
     div.innerHTML = `
-        <div class="semester-header" onclick="toggleSemester('${semester.id}')">
+        <div class="semester-header" onclick="toggleSemester('${escapeHtml(semester.id)}')">
             <span class="toggle-icon">▶</span>
-            <span class="semester-name">${semester.semesterName}</span>
+            <span class="semester-name">${escapeHtml(semester.semesterName)}</span>
             <span class="semester-badge">${courseCount} ders</span>
         </div>
         <div class="course-list">
@@ -107,28 +107,28 @@ function createCourseElement(course) {
     } catch (e) {}
 
     const courseNote = gradeNotes[course.id];
-    const tagBadge = course.tag ? `<span class="tag-badge tag-${course.tag}">${course.tag.toUpperCase()}</span>` : '';
-    const noteBadge = courseNote ? `<span title="Not: ${courseNote}" style="cursor: pointer; margin-left: 4px;">📝</span>` : '';
+    const tagBadge = course.tag ? `<span class="tag-badge tag-${escapeHtml(course.tag)}">${escapeHtml(course.tag.toUpperCase())}</span>` : '';
+    const noteBadge = courseNote ? `<span title="Not: ${escapeHtml(courseNote)}" style="cursor: pointer; margin-left: 4px;">📝</span>` : '';
 
     return `
         <div class="course-item" 
              draggable="true" 
-             data-course-id="${course.id}"
-             onclick="selectCourse('${course.id}')">
+             data-course-id="${escapeHtml(course.id)}"
+             onclick="selectCourse('${escapeHtml(course.id)}')">
             <span class="course-drag-handle">⋮⋮</span>
             <div class="course-info">
-                <div class="course-code">${course.courseCode}${tagBadge}${noteBadge}</div>
-                <div class="course-name">${course.courseName}</div>
+                <div class="course-code">${escapeHtml(course.courseCode)}${tagBadge}${noteBadge}</div>
+                <div class="course-name">${escapeHtml(course.courseName)}</div>
                 <div class="course-credits">${course.credit} Kredi • ${course.ects} AKTS</div>
             </div>
             ${isAdmin ? `
             <div class="course-admin-actions" onclick="event.stopPropagation()">
-                <button type="button" class="btn-course-action btn-edit-course" onclick="openEditModal('COURSE','${course.id}','${deptId}')" title="Dersi Düzenle">✏️</button>
-                <button type="button" class="btn-course-action btn-delete-course" onclick="openDeleteModal('COURSE','${course.id}','${deptId}')" title="Dersi Sil">🗑️</button>
+                <button type="button" class="btn-course-action btn-edit-course" onclick="openEditModal('COURSE','${escapeHtml(course.id)}','${escapeHtml(deptId)}')" title="Dersi Düzenle">✏️</button>
+                <button type="button" class="btn-course-action btn-delete-course" onclick="openDeleteModal('COURSE','${escapeHtml(course.id)}','${escapeHtml(deptId)}')" title="Dersi Sil">🗑️</button>
             </div>
             ` : ''}
-            <select class="grade-select" data-course-id="${course.id}" onclick="event.stopPropagation()" 
-                    onchange="onGradeChange('${course.id}', this.value); highlightGradeRow(this.value);">
+            <select class="grade-select" data-course-id="${escapeHtml(course.id)}" onclick="event.stopPropagation()" 
+                    onchange="onGradeChange('${escapeHtml(course.id)}', this.value); highlightGradeRow(this.value);">
                 ${grades.map(g => `<option value="${g}" ${savedGrade === g ? 'selected' : ''}>${g || '—'}</option>`).join('')}
             </select>
         </div>
@@ -560,10 +560,10 @@ function loadMyComments() {
     container.innerHTML = myComments.map(item => `
         <div style="background: var(--bg-dark); padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid var(--border);">
             <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
-                <span>Ders ID: ${item.courseId}</span>
+                <span>Ders ID: ${escapeHtml(item.courseId)}</span>
                 <span>👍 ${item.comment.likeCount || 0}</span>
             </div>
-            <p style="font-size: 0.85rem; margin-top: 0.3rem;">"${item.comment.commentText}"</p>
+            <p style="font-size: 0.85rem; margin-top: 0.3rem;">"${escapeHtml(item.comment.commentText)}"</p>
         </div>
     `).join('');
 }
@@ -574,7 +574,7 @@ function openCustomCourseModal() {
     if (!semSelect) return;
 
     semSelect.innerHTML = semesters.map(s => `
-        <option value="${s.id}">${s.semesterName}</option>
+        <option value="${escapeHtml(s.id)}">${escapeHtml(s.semesterName)}</option>
     `).join('');
 
     openModal('custom-course-modal');

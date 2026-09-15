@@ -104,13 +104,13 @@ function openDeleteModal(type, itemId, parentId) {
         <div class="modal-overlay" onclick="if(event.target === this) closeModal()">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Sil: ${DATA_TYPES[type].label}</h2>
+                    <h2>Sil: ${DATA_TYPES[type] ? DATA_TYPES[type].label : type}</h2>
                     <button class="btn-close-modal" onclick="closeModal()">✕</button>
                 </div>
                 <div class="modal-body">
                     <div class="delete-confirm">
                         <div class="delete-icon">🗑️</div>
-                        <p><strong>${itemName}</strong> silinecek.</p>
+                        <p><strong>${escapeHtml(itemName)}</strong> silinecek.</p>
                         ${!isAdminUser() ? '<p style="color:var(--text-muted);font-size:0.85rem">Silme talebi admin onayına gönderilecektir.</p>' : ''}
                         <div class="form-group" style="margin-top:1rem">
                             <label>Mesaj / Sebep (isteğe bağlı)</label>
@@ -118,7 +118,7 @@ function openDeleteModal(type, itemId, parentId) {
                         </div>
                         <div class="form-actions">
                             <button class="btn-cancel" onclick="closeModal()">İptal</button>
-                            <button class="btn-delete" onclick="confirmDelete('${type}','${itemId}','${parentId}')">Sil</button>
+                            <button class="btn-delete" onclick="confirmDelete('${escapeHtml(type)}','${escapeHtml(itemId)}','${escapeHtml(parentId)}')">Sil</button>
                         </div>
                     </div>
                 </div>
@@ -172,7 +172,7 @@ function renderForm(typeKey, prefill) {
                 <div class="admin-form">
                     <div class="form-group">
                         <label>Üniversite Adı</label>
-                        <input type="text" id="uni-name" class="form-control" placeholder="Örn: Galatasaray Üniversitesi" value="${p.name || ''}">
+                        <input type="text" id="uni-name" class="form-control" placeholder="Örn: Galatasaray Üniversitesi" value="${escapeHtml(p.name || '')}">
                     </div>
                 </div>
             `;
@@ -190,7 +190,7 @@ function renderForm(typeKey, prefill) {
                     </div>
                     <div class="form-group">
                         <label>Fakülte Adı</label>
-                        <input type="text" id="faculty-name" class="form-control" placeholder="Örn: Mühendislik Fakültesi" value="${p.name || ''}">
+                        <input type="text" id="faculty-name" class="form-control" placeholder="Örn: Mühendislik Fakültesi" value="${escapeHtml(p.name || '')}">
                     </div>
                 </div>
             `;
@@ -214,7 +214,7 @@ function renderForm(typeKey, prefill) {
                     </div>
                     <div class="form-group">
                         <label>Bölüm Adı</label>
-                        <input type="text" id="dept-name" class="form-control" placeholder="Örn: Endüstri Mühendisliği" value="${p.name || ''}">
+                        <input type="text" id="dept-name" class="form-control" placeholder="Örn: Endüstri Mühendisliği" value="${escapeHtml(p.name || '')}">
                     </div>
                 </div>
             `;
@@ -244,20 +244,20 @@ function renderForm(typeKey, prefill) {
                     </div>
                     <div class="form-group">
                         <label>Ders Kodu</label>
-                        <input type="text" id="course-code" class="form-control" placeholder="Örn: END101" value="${p.courseCode || ''}">
+                        <input type="text" id="course-code" class="form-control" placeholder="Örn: END101" value="${escapeHtml(p.courseCode || '')}">
                     </div>
                     <div class="form-group">
                         <label>Ders Adı</label>
-                        <input type="text" id="course-name" class="form-control" placeholder="Örn: Giriş" value="${p.courseName || ''}">
+                        <input type="text" id="course-name" class="form-control" placeholder="Örn: Giriş" value="${escapeHtml(p.courseName || '')}">
                     </div>
                     <div class="form-group" style="display:flex; gap:1rem;">
                         <div style="flex:1">
                             <label>Kredi</label>
-                            <input type="number" id="course-credit" class="form-control" value="${p.credit || ''}">
+                            <input type="number" id="course-credit" class="form-control" value="${p.credit !== undefined ? p.credit : ''}">
                         </div>
                         <div style="flex:1">
                             <label>AKTS</label>
-                            <input type="number" id="course-ects" class="form-control" value="${p.ects || ''}">
+                            <input type="number" id="course-ects" class="form-control" value="${p.ects !== undefined ? p.ects : ''}">
                         </div>
                     </div>
                 </div>
@@ -294,7 +294,7 @@ function renderForm(typeKey, prefill) {
                         </div>
                         <div style="flex:1">
                             <label>Hoca Adı</label>
-                            <input type="text" id="criteria-instructor" class="form-control" placeholder="Örn: Ahmet Yılmaz" value="${p.instructorName || ''}">
+                            <input type="text" id="criteria-instructor" class="form-control" placeholder="Örn: Ahmet Yılmaz" value="${escapeHtml(p.instructorName || '')}">
                         </div>
                     </div>
                     <div class="form-group">
@@ -334,7 +334,7 @@ function renderForm(typeKey, prefill) {
                         </div>
                         <div style="flex:1">
                             <label>Hoca Adı</label>
-                            <input type="text" id="scale-instructor" class="form-control" placeholder="Örn: Ahmet Yılmaz" value="${p.instructorName || ''}">
+                            <input type="text" id="scale-instructor" class="form-control" placeholder="Örn: Ahmet Yılmaz" value="${escapeHtml(p.instructorName || '')}">
                         </div>
                     </div>
                     <div class="form-group">
@@ -384,7 +384,7 @@ function renderForm(typeKey, prefill) {
 function getUniversityOptions() {
     return Object.values(MOCK_DATA.universities)
         .filter(u => u.status === 2 || isAdminUser())
-        .map(u => `<option value="${u.id}">${u.name}</option>`)
+        .map(u => `<option value="${escapeHtml(u.id)}">${escapeHtml(u.name)}</option>`)
         .join('');
 }
 
@@ -403,7 +403,7 @@ function updateFacultyOptions() {
     if (faculties.length > 0) {
         const options = faculties
             .filter(f => f.status === 2 || isAdminUser())
-            .map(f => `<option value="${f.id}">${f.name}</option>`)
+            .map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.name)}</option>`)
             .join('');
         facSelect.innerHTML = '<option value="">Seçiniz...</option>' + options;
         facSelect.disabled = false;
@@ -427,7 +427,7 @@ function updateDeptOptions() {
     if (uni && uni.departments) {
         const options = Object.values(uni.departments)
             .filter(d => d.status === 2 || isAdminUser())
-            .map(d => `<option value="${d.id}">${d.name}</option>`)
+            .map(d => `<option value="${escapeHtml(d.id)}">${escapeHtml(d.name)}</option>`)
             .join('');
         deptSelect.innerHTML = '<option value="">Seçiniz...</option>' + options;
         deptSelect.disabled = false;
@@ -449,7 +449,7 @@ function updateSemesterOptions() {
 
     const semesters = MOCK_DATA.semesters[deptId] || [];
     if (semesters.length > 0) {
-        const options = semesters.map(s => `<option value="${s.id}">${s.semesterName}</option>`).join('');
+        const options = semesters.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.semesterName)}</option>`).join('');
         semSelect.innerHTML = '<option value="">Seçiniz...</option>' + options;
         semSelect.disabled = false;
     } else {
@@ -479,7 +479,7 @@ function updateCourseOptions() {
     });
 
     if (allCourses.length > 0) {
-        const options = allCourses.map(c => `<option value="${c.id}">${c.courseCode} - ${c.courseName}</option>`).join('');
+        const options = allCourses.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.courseCode)} - ${escapeHtml(c.courseName)}</option>`).join('');
         courseSelect.innerHTML = '<option value="">Seçiniz...</option>' + options;
         courseSelect.disabled = false;
     } else {
@@ -497,7 +497,7 @@ function addCriteriaRow(name, weight) {
     row.className = 'dynamic-row';
     row.id = `criteria-row-${criteriaRowCount}`;
     row.innerHTML = `
-        <input type="text" class="form-control" placeholder="Kriter adı (Vize, Final...)" data-field="name" style="flex:2" value="${name || ''}">
+        <input type="text" class="form-control" placeholder="Kriter adı (Vize, Final...)" data-field="name" style="flex:2" value="${escapeHtml(name || '')}">
         <input type="number" class="form-control" placeholder="%" data-field="weight" style="flex:1" value="${weight || ''}">
         <button type="button" class="btn-remove-row" onclick="this.parentElement.remove()">✕</button>
     `;
@@ -1027,13 +1027,13 @@ function renderPendingList() {
             <div class="pending-item">
                 <div class="pending-header">
                     <div style="display:flex; gap:0.5rem; align-items:center">
-                        <span class="pending-action-badge" style="background:${action.color}20; color:${action.color}">${action.icon} ${action.label}</span>
-                        <span class="pending-type">${typeObj.label}</span>
+                        <span class="pending-action-badge" style="background:${action.color}20; color:${action.color}">${action.icon} ${escapeHtml(action.label)}</span>
+                        <span class="pending-type">${escapeHtml(typeObj.label)}</span>
                     </div>
-                    <span class="pending-user">${submittedUser} • ${new Date(item.timestamp).toLocaleDateString()}</span>
+                    <span class="pending-user">${escapeHtml(submittedUser)} • ${new Date(item.timestamp).toLocaleDateString()}</span>
                 </div>
-                <div class="pending-details">${details}</div>
-                ${item.message ? `<div class="pending-message">💬 ${item.message}</div>` : ''}
+                <div class="pending-details">${escapeHtml(details)}</div>
+                ${item.message ? `<div class="pending-message">💬 ${escapeHtml(item.message)}</div>` : ''}
                 <div class="pending-actions">
                     <button class="btn-reject" onclick="rejectItem(${index})">Reddet</button>
                     <button class="btn-approve" onclick="approveItem(${index})">Onayla</button>

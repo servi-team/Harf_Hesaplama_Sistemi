@@ -496,8 +496,8 @@ function showProfilePopup(userId, event) {
             <div class="profile-popup-header">
                 <span class="profile-avatar" style="background: ${roleColor}">${user.userName.charAt(0)}</span>
                 <div>
-                    <div class="profile-name">${user.userName}</div>
-                    <div class="profile-role" style="color: ${roleColor}">${roleLabel}</div>
+                    <div class="profile-name">${escapeHtml(user.userName)}</div>
+                    <div class="profile-role" style="color: ${roleColor}">${escapeHtml(roleLabel)}</div>
                 </div>
                 <button class="profile-close" onclick="closeProfilePopup()">✕</button>
             </div>
@@ -507,7 +507,7 @@ function showProfilePopup(userId, event) {
                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                         <polyline points="22,6 12,13 2,6"></polyline>
                     </svg>
-                    <span>${user.email}</span>
+                    <span>${escapeHtml(user.email)}</span>
                 </div>
                 <div class="profile-detail-row">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
