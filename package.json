@@ -1,0 +1,23 @@
+{
+  "name": "harf-hesaplama-sistemi",
+  "version": "1.0.0",
+  "description": "Üniversite Harf Notu ve AGNO Hesaplama Sistemi",
+  "main": "frontend/main.html",
+  "scripts": {
+    "start": "servor frontend main.html 8080 --reload",
+    "lint": "eslint frontend/js/*.js",
+    "audit": "npm audit"
+  },
+  "keywords": [
+    "gpa-calculator",
+    "harf-hesaplama",
+    "university-grade"
+  ],
+  "author": "Servi Team",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^9.11.1",
+    "prettier": "^3.3.3",
+    "servor": "^4.0.2"
+  }
+}
