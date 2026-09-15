@@ -446,8 +446,9 @@ function recalculateGrade(courseId) {
 
     const avgEl = document.getElementById('calculated-avg');
     if (avgEl) {
-        if (totalWeight > 0) {
-            const avg = weightedSum / (totalWeight / 100);
+        if (!isNaN(totalWeight) && totalWeight > 0) {
+            const rawAvg = weightedSum / (totalWeight / 100);
+            const avg = Math.min(100.0, Math.max(0.0, rawAvg));
             avgEl.textContent = avg.toFixed(1);
         } else {
             avgEl.textContent = '—';
@@ -550,7 +551,7 @@ function saveCalculatedGradeToGPA(courseId) {
     }
 
     const numericGrade = parseFloat(avgEl.textContent);
-    if (isNaN(numericGrade)) {
+    if (isNaN(numericGrade) || numericGrade < 0 || numericGrade > 100) {
         alert('Geçerli bir ortalama bulunamadı.');
         return;
     }

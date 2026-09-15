@@ -205,14 +205,19 @@ function updateOverallGPA() {
 
         const letterGrade = selectedGrades[courseId];
         const gradePoint = gradePoints[letterGrade];
+        const credit = Number(course.credit);
 
-        if (gradePoint !== undefined) {
-            totalPoints += gradePoint * course.credit;
-            totalCredits += course.credit;
+        if (gradePoint !== undefined && !isNaN(credit) && credit > 0 && credit <= 30) {
+            totalPoints += gradePoint * credit;
+            totalCredits += credit;
         }
     });
 
-    const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+    let calculatedGPA = 0;
+    if (totalCredits > 0 && totalPoints >= 0) {
+        calculatedGPA = Math.min(4.0, Math.max(0.0, totalPoints / totalCredits));
+    }
+    const gpa = calculatedGPA.toFixed(2);
     
     const headerGpa = document.getElementById('overall-gpa');
     if (headerGpa) headerGpa.textContent = gpa;

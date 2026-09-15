@@ -92,6 +92,8 @@ function calculateOfferingGrade(courseId, offering) {
         }
     });
 
+    totalScore = Math.min(100.0, Math.max(0.0, totalScore));
+
     let letterGradeObj;
     if (failedMinScore) {
         letterGradeObj = { letterGrade: 'FF', minScore: 0, maxScore: 49, gradePoint: 0.0, warning: failedMinInfo };
@@ -278,6 +280,8 @@ function calculateManualGrade(courseId) {
         showError('Toplam ağırlık 100 olmalı');
         return;
     }
+
+    totalScore = Math.min(100.0, Math.max(0.0, totalScore));
 
     // Standart harf notu skalası
     const standardScale = [
