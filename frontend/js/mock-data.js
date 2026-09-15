@@ -560,16 +560,20 @@ const MOCK_DATA = {
 // ==================== LOCALSTORAGE PERSISTENCE ====================
 function saveMockData() {
     try {
-        localStorage.setItem('HARF_MOCK_DATA', JSON.stringify(MOCK_DATA));
+        const sanitizedData = JSON.parse(JSON.stringify(MOCK_DATA));
+        if (sanitizedData.mockUsers) {
+            Object.values(sanitizedData.mockUsers).forEach(user => {
+                delete user.password;
+            });
+        }
+        localStorage.setItem('HARF_MOCK_DATA', JSON.stringify(sanitizedData));
         if (MOCK_DATA.mockCurrentUser) {
             localStorage.setItem('loggedInUserId', MOCK_DATA.mockCurrentUser);
         }
         if (typeof updatePendingBadge === 'function') {
             updatePendingBadge();
         }
-    } catch (e) {
-        console.error('MOCK_DATA kaydedilemedi:', e);
-    }
+    } catch (e) {}
 }
 
 (function loadMockDataFromStorage() {
@@ -583,14 +587,21 @@ function saveMockData() {
             if (parsed.gradingCriteria) MOCK_DATA.gradingCriteria = parsed.gradingCriteria;
             if (parsed.gradeScales) MOCK_DATA.gradeScales = parsed.gradeScales;
             if (parsed.comments) MOCK_DATA.comments = parsed.comments;
-            if (parsed.mockUsers) MOCK_DATA.mockUsers = parsed.mockUsers;
             if (parsed.pendingData) MOCK_DATA.pendingData = parsed.pendingData;
+            if (parsed.mockUsers) {
+                Object.keys(parsed.mockUsers).forEach(uId => {
+                    if (MOCK_DATA.mockUsers[uId]) {
+                        const pass = MOCK_DATA.mockUsers[uId].password;
+                        MOCK_DATA.mockUsers[uId] = { ...parsed.mockUsers[uId], password: pass };
+                    } else {
+                        MOCK_DATA.mockUsers[uId] = parsed.mockUsers[uId];
+                    }
+                });
+            }
         } else {
             saveMockData();
         }
-    } catch (e) {
-        console.error('MOCK_DATA yüklenemedi:', e);
-    }
+    } catch (e) {}
 })();
 
 /**

@@ -252,7 +252,6 @@ function loadSavedGrades() {
             selectedGrades = JSON.parse(saved);
             updateOverallGPA();
         } catch (e) {
-            console.error('Notlar yüklenemedi:', e);
             selectedGrades = {};
         }
     }

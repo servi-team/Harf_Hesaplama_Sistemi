@@ -74,7 +74,6 @@ function loadCourseDetail(courseId) {
     currentSelectedCourseId = courseId;
     const course = findCourseById(courseId);
     if (!course) {
-        console.error('Ders bulunamadı:', courseId);
         return;
     }
 
