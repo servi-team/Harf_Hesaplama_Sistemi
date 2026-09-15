@@ -564,14 +564,14 @@ function saveData(type) {
 
     if (type === 'UNIVERSITY') {
         const name = document.getElementById('uni-name').value.trim();
-        if (!name) return alert('İsim gerekli');
+        if (!name || name.length > 100) return alert('Üniversite adı 1-100 karakter arasında olmalıdır.');
         const id = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
         data = { id, name, departments: {} };
 
     } else if (type === 'FACULTY') {
         const uniId = document.getElementById('select-uni').value;
         const name = document.getElementById('faculty-name').value.trim();
-        if (!uniId || !name) return alert('Tüm alanlar gerekli');
+        if (!uniId || !name || name.length > 100) return alert('Lütfen geçerli bir fakülte adı (maks 100 karakter) ve üniversite seçin.');
         const id = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
         data = { id, name, departmentIds: [] };
         parentId = uniId;
@@ -580,7 +580,7 @@ function saveData(type) {
         const uniId = document.getElementById('select-uni').value;
         const facId = document.getElementById('select-faculty') ? document.getElementById('select-faculty').value : '';
         const name = document.getElementById('dept-name').value.trim();
-        if (!uniId || !name) return alert('Üniversite ve bölüm adı gerekli');
+        if (!uniId || !name || name.length > 100) return alert('Üniversite seçilmeli ve bölüm adı 1-100 karakter arasında olmalıdır.');
         const id = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
         data = { id, name, facultyId: facId || null };
         parentId = uniId;
@@ -590,50 +590,81 @@ function saveData(type) {
         const semId = document.getElementById('select-semester').value;
         const code = document.getElementById('course-code').value.trim();
         const name = document.getElementById('course-name').value.trim();
-        const credit = document.getElementById('course-credit').value;
-        const ects = document.getElementById('course-ects').value;
-        if (!deptId || !semId || !code || !name) return alert('Tüm alanlar gerekli');
+        const credit = Number(document.getElementById('course-credit').value);
+        const ects = Number(document.getElementById('course-ects').value);
+        if (!deptId || !semId || !code || !name) return alert('Tüm alanlar gereklidir.');
+        if (code.length > 20 || name.length > 100) return alert('Ders kodu maks 20, ders adı maks 100 karakter olabilir.');
+        if (isNaN(credit) || credit < 0 || credit > 30) return alert('Kredi 0 ile 30 arasında bir sayı olmalıdır.');
+        if (isNaN(ects) || ects < 0 || ects > 60) return alert('AKTS 0 ile 60 arasında bir sayı olmalıdır.');
+
         const id = code.toLowerCase();
-        data = { id, courseCode: code, courseName: name, credit: Number(credit), ects: Number(ects), semesterId: semId, departmentId: deptId };
+        data = { id, courseCode: code, courseName: name, credit, ects, semesterId: semId, departmentId: deptId };
         parentId = deptId;
 
     } else if (type === 'CRITERIA') {
         const courseId = document.getElementById('select-course').value;
-        const year = document.getElementById('criteria-year').value;
+        const yearNum = Number(document.getElementById('criteria-year').value);
         const instructor = document.getElementById('criteria-instructor').value.trim();
-        if (!courseId || !instructor) return alert('Ders ve hoca adı gerekli');
+        if (!courseId || !instructor) return alert('Ders ve hoca adı gereklidir.');
+        if (instructor.length > 100) return alert('Hoca adı maks 100 karakter olabilir.');
+        if (isNaN(yearNum) || yearNum < 1900 || yearNum > 2100) return alert('Yıl 1900-2100 arasında olmalıdır.');
+
         const rows = document.querySelectorAll('#criteria-rows .dynamic-row');
-        if (rows.length === 0) return alert('En az bir kriter satırı ekleyin');
+        if (rows.length === 0) return alert('En az bir kriter satırı ekleyin.');
         const criteria = [];
         let totalWeight = 0;
+        let validRows = true;
+
         rows.forEach((row, i) => {
             const n = row.querySelector('[data-field="name"]').value.trim();
             const w = Number(row.querySelector('[data-field="weight"]').value);
-            if (!n || !w) return;
+            if (!n || n.length > 100 || isNaN(w) || w <= 0 || w > 100) {
+                validRows = false;
+                return;
+            }
             totalWeight += w;
             criteria.push({ name: n, weight: w, order: i + 1 });
         });
-        if (criteria.length === 0) return alert('Geçerli kriter satırları ekleyin');
-        if (totalWeight !== 100) return alert(`Toplam ağırlık %100 olmalı (şu an: %${totalWeight})`);
-        data = { id: generateId('kriter'), label: `${year} - ${instructor}`, instructorName: instructor, year: Number(year), criteria };
+
+        if (!validRows) return alert('Kriter adları 1-100 karakter olmalı ve ağırlıklar 1-100 arasında olmalıdır.');
+        if (criteria.length === 0) return alert('Geçerli kriter satırları ekleyin.');
+        if (Math.abs(totalWeight - 100) > 0.01) return alert(`Toplam ağırlık %100 olmalı (şu an: %${totalWeight})`);
+        data = { id: generateId('kriter'), label: `${yearNum} - ${instructor}`, instructorName: instructor, year: yearNum, criteria };
         parentId = courseId;
 
     } else if (type === 'SCALE') {
         const courseId = document.getElementById('select-course').value;
-        const year = document.getElementById('scale-year').value;
+        const yearNum = Number(document.getElementById('scale-year').value);
         const instructor = document.getElementById('scale-instructor').value.trim();
-        const totalStudents = document.getElementById('scale-total').value;
-        if (!courseId || !instructor) return alert('Ders ve hoca adı gerekli');
+        const totalStud = document.getElementById('scale-total').value;
+        const totalStudentsNum = totalStud !== '' ? Number(totalStud) : null;
+
+        if (!courseId || !instructor) return alert('Ders ve hoca adı gereklidir.');
+        if (instructor.length > 100) return alert('Hoca adı maks 100 karakter olabilir.');
+        if (isNaN(yearNum) || yearNum < 1900 || yearNum > 2100) return alert('Yıl 1900-2100 arasında olmalıdır.');
+        if (totalStudentsNum !== null && (isNaN(totalStudentsNum) || totalStudentsNum < 1 || totalStudentsNum > 10000)) {
+            return alert('Öğrenci sayısı 1 ile 10000 arasında olmalıdır.');
+        }
+
         const rows = document.querySelectorAll('#scale-rows .scale-row');
         const scale = [];
+        let scaleValid = true;
+
         rows.forEach((row, i) => {
             const min = Number(row.querySelector('[data-field="min"]').value);
             const max = Number(row.querySelector('[data-field="max"]').value);
             const gp = Number(row.querySelector('[data-field="gp"]').value);
-            const count = Number(row.querySelector('[data-field="count"]').value) || null;
+            const countVal = row.querySelector('[data-field="count"]').value;
+            const count = countVal !== '' ? Number(countVal) : null;
+
+            if (isNaN(min) || min < 0 || min > 100 || isNaN(max) || max < 0 || max > 100 || min > max || isNaN(gp) || gp < 0 || gp > 4.0) {
+                scaleValid = false;
+            }
             scale.push({ letterGrade: LETTER_GRADES[i], minScore: min, maxScore: max, gradePoint: gp, studentCount: count });
         });
-        data = { id: generateId('skala'), label: `${year} - ${instructor}`, instructorName: instructor, year: Number(year), totalStudents: Number(totalStudents) || null, scale };
+
+        if (!scaleValid) return alert('Skala puanları 0-100 arasında, Min <= Max ve Katsayı 0.0-4.0 arasında olmalıdır.');
+        data = { id: generateId('skala'), label: `${yearNum} - ${instructor}`, instructorName: instructor, year: yearNum, totalStudents: totalStudentsNum, scale };
         parentId = courseId;
 
     } else {
@@ -677,53 +708,109 @@ function saveEdit(type) {
 
     // Form'dan güncelle
     if (type === 'UNIVERSITY') {
-        updatedData.name = document.getElementById('uni-name').value.trim();
+        const name = document.getElementById('uni-name').value.trim();
+        if (!name || name.length > 100) return alert('Üniversite adı 1-100 karakter arasında olmalıdır.');
+        updatedData.name = name;
     } else if (type === 'FACULTY') {
-        updatedData.name = document.getElementById('faculty-name').value.trim();
+        const name = document.getElementById('faculty-name').value.trim();
+        if (!name || name.length > 100) return alert('Fakülte adı 1-100 karakter arasında olmalıdır.');
+        updatedData.name = name;
     } else if (type === 'DEPARTMENT') {
-        updatedData.name = document.getElementById('dept-name').value.trim();
+        const name = document.getElementById('dept-name').value.trim();
+        if (!name || name.length > 100) return alert('Bölüm adı 1-100 karakter arasında olmalıdır.');
+        updatedData.name = name;
     } else if (type === 'COURSE') {
-        updatedData.courseCode = document.getElementById('course-code').value.trim();
-        updatedData.courseName = document.getElementById('course-name').value.trim();
-        updatedData.credit = Number(document.getElementById('course-credit').value);
-        updatedData.ects = Number(document.getElementById('course-ects').value);
+        const code = document.getElementById('course-code').value.trim();
+        const name = document.getElementById('course-name').value.trim();
+        const credit = Number(document.getElementById('course-credit').value);
+        const ects = Number(document.getElementById('course-ects').value);
+        
+        if (!code || !name) {
+            return alert('Lütfen ders kodu ve ders adını eksiksiz giriniz.');
+        }
+        if (code.length > 20 || name.length > 100) {
+            return alert('Ders kodu maks 20, ders adı maks 100 karakter olabilir.');
+        }
+        if (isNaN(credit) || credit < 0 || credit > 30) {
+            return alert('Kredi değeri 0 ile 30 arasında olmalıdır.');
+        }
+        if (isNaN(ects) || ects < 0 || ects > 60) {
+            return alert('AKTS değeri 0 ile 60 arasında olmalıdır.');
+        }
+
+        updatedData.courseCode = code;
+        updatedData.courseName = name;
+        updatedData.credit = credit;
+        updatedData.ects = ects;
     } else if (type === 'CRITERIA') {
-        const year = document.getElementById('criteria-year').value;
+        const yearNum = Number(document.getElementById('criteria-year').value);
         const instructor = document.getElementById('criteria-instructor').value.trim();
+        if (!instructor || instructor.length > 100) return alert('Hoca adı 1-100 karakter olmalıdır.');
+        if (isNaN(yearNum) || yearNum < 1900 || yearNum > 2100) return alert('Yıl 1900-2100 arasında olmalıdır.');
+
         const rows = document.querySelectorAll('#criteria-rows .dynamic-row');
         const criteria = [];
         let totalWeight = 0;
+        let validRows = true;
+
         rows.forEach((row, i) => {
             const n = row.querySelector('[data-field="name"]').value.trim();
             const w = Number(row.querySelector('[data-field="weight"]').value);
-            if (!n || !w) return;
+            if (!n || n.length > 100 || isNaN(w) || w <= 0 || w > 100) {
+                validRows = false;
+                return;
+            }
             totalWeight += w;
             criteria.push({ name: n, weight: w, order: i + 1 });
         });
-        if (totalWeight !== 100) return alert(`Toplam ağırlık %100 olmalı (şu an: %${totalWeight})`);
-        updatedData.label = `${year} - ${instructor}`;
+        if (!validRows) return alert('Kriter adları 1-100 karakter olmalı ve ağırlıklar 1-100 arasında olmalıdır.');
+        if (criteria.length === 0) return alert('Geçerli kriter satırları ekleyin.');
+        if (Math.abs(totalWeight - 100) > 0.01) return alert(`Toplam ağırlık %100 olmalı (şu an: %${totalWeight})`);
+        updatedData.label = `${yearNum} - ${instructor}`;
         updatedData.instructorName = instructor;
-        updatedData.year = Number(year);
+        updatedData.year = yearNum;
         updatedData.criteria = criteria;
     } else if (type === 'SCALE') {
-        const year = document.getElementById('scale-year').value;
+        const yearNum = Number(document.getElementById('scale-year').value);
         const instructor = document.getElementById('scale-instructor').value.trim();
-        const totalStudents = document.getElementById('scale-total').value;
+        const totalStud = document.getElementById('scale-total').value;
+        const totalStudentsNum = totalStud !== '' ? Number(totalStud) : null;
+
+        if (!instructor || instructor.length > 100) return alert('Hoca adı 1-100 karakter olmalıdır.');
+        if (isNaN(yearNum) || yearNum < 1900 || yearNum > 2100) return alert('Yıl 1900-2100 arasında olmalıdır.');
+        if (totalStudentsNum !== null && (isNaN(totalStudentsNum) || totalStudentsNum < 1 || totalStudentsNum > 10000)) {
+            return alert('Öğrenci sayısı 1 ile 10000 arasında olmalıdır.');
+        }
+
         const rows = document.querySelectorAll('#scale-rows .scale-row');
         const scale = [];
+        let scaleValid = true;
+
         rows.forEach((row, i) => {
+            const min = Number(row.querySelector('[data-field="min"]').value);
+            const max = Number(row.querySelector('[data-field="max"]').value);
+            const gp = Number(row.querySelector('[data-field="gp"]').value);
+            const countVal = row.querySelector('[data-field="count"]').value;
+            const count = countVal !== '' ? Number(countVal) : null;
+
+            if (isNaN(min) || min < 0 || min > 100 || isNaN(max) || max < 0 || max > 100 || min > max || isNaN(gp) || gp < 0 || gp > 4.0) {
+                scaleValid = false;
+            }
+
             scale.push({
                 letterGrade: LETTER_GRADES[i],
-                minScore: Number(row.querySelector('[data-field="min"]').value),
-                maxScore: Number(row.querySelector('[data-field="max"]').value),
-                gradePoint: Number(row.querySelector('[data-field="gp"]').value),
-                studentCount: Number(row.querySelector('[data-field="count"]').value) || null
+                minScore: min,
+                maxScore: max,
+                gradePoint: gp,
+                studentCount: count
             });
         });
-        updatedData.label = `${year} - ${instructor}`;
+
+        if (!scaleValid) return alert('Skala puanları 0-100 arasında, Min <= Max ve Katsayı 0.0-4.0 arasında olmalıdır.');
+        updatedData.label = `${yearNum} - ${instructor}`;
         updatedData.instructorName = instructor;
-        updatedData.year = Number(year);
-        updatedData.totalStudents = Number(totalStudents) || null;
+        updatedData.year = yearNum;
+        updatedData.totalStudents = totalStudentsNum;
         updatedData.scale = scale;
     }
 

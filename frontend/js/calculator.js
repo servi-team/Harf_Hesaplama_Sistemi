@@ -242,15 +242,22 @@ function calculateManualGrade(courseId) {
         const score = parseFloat(scoreInput.value);
         const minVal = minInput && minInput.value !== '' ? parseFloat(minInput.value) : NaN;
 
-        if (!name || isNaN(weight) || isNaN(score) || score < 0 || score > 100) {
+        const isWeightInvalid = isNaN(weight) || weight < 0 || weight > 100;
+        const isScoreInvalid = isNaN(score) || score < 0 || score > 100;
+        const isMinInvalid = !isNaN(minVal) && (minVal < 0 || minVal > 100);
+        const isNameInvalid = !name || name.length > 100;
+
+        if (isNameInvalid || isWeightInvalid || isScoreInvalid || isMinInvalid) {
             allValid = false;
-            if (!name) nameInput.classList.add('error');
-            if (isNaN(weight)) weightInput.classList.add('error');
-            if (isNaN(score) || score < 0 || score > 100) scoreInput.classList.add('error');
+            if (isNameInvalid) nameInput.classList.add('error');
+            if (isWeightInvalid) weightInput.classList.add('error');
+            if (isScoreInvalid) scoreInput.classList.add('error');
+            if (isMinInvalid && minInput) minInput.classList.add('error');
         } else {
             nameInput.classList.remove('error');
             weightInput.classList.remove('error');
             scoreInput.classList.remove('error');
+            if (minInput) minInput.classList.remove('error');
 
             totalScore += score * (weight / 100);
             totalWeight += weight;
@@ -402,7 +409,7 @@ function displayManualResult(numericGrade, letterGrade, courseId) {
 function saveGradeToList(courseId, letterGrade) {
     const noteInput = document.getElementById(`result-grade-note-${courseId}`);
     if (noteInput && noteInput.value.trim() !== '') {
-        const noteText = noteInput.value.trim();
+        const noteText = noteInput.value.trim().substring(0, 250);
         const uni = localStorage.getItem('selectedUniversity') || 'genel';
         const dept = localStorage.getItem('selectedDepartment') || 'genel';
         let gradeNotes = {};

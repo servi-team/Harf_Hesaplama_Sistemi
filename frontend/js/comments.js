@@ -320,7 +320,10 @@ function saveEditComment(courseId, commentId) {
     if (!textarea) return;
 
     const newText = textarea.value.trim();
-    if (!newText) return;
+    if (!newText || newText.length < 2 || newText.length > 1000) {
+        alert('Yorum 2 ile 1000 karakter arasında olmalıdır.');
+        return;
+    }
 
     const comments = MOCK_DATA.comments[courseId];
     if (comments) {
@@ -437,7 +440,10 @@ function submitComment() {
     if (!textarea) return;
 
     const text = textarea.value.trim();
-    if (!text) return;
+    if (!text || text.length < 2 || text.length > 1000) {
+        alert('Yorum 2 ile 1000 karakter arasında olmalıdır.');
+        return;
+    }
 
     const currentUser = getCurrentUser();
 

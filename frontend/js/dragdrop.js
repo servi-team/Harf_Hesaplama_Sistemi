@@ -426,9 +426,18 @@ function recalculateGrade(courseId) {
 
     inputs.forEach(input => {
         const weight = parseFloat(input.dataset.weight);
-        const score = parseFloat(input.value);
+        let score = parseFloat(input.value);
         const idx = input.dataset.criterionIdx;
-        if (!isNaN(score) && score >= 0) {
+        
+        // Girdi doğrulama: 0 ile 100 arasında sınırlandır
+        if (!isNaN(score)) {
+            if (score < 0) {
+                score = 0;
+                input.value = 0;
+            } else if (score > 100) {
+                score = 100;
+                input.value = 100;
+            }
             weightedSum += score * (weight / 100);
             totalWeight += weight;
             if (idx !== undefined) {

@@ -47,6 +47,11 @@ function attemptLogin() {
         return;
     }
 
+    if (email.length > 150 || password.length > 100) {
+        showLoginError('Girdi uzunluk sınırları aşıldı.');
+        return;
+    }
+
     const users = MOCK_DATA.mockUsers;
     let matchedUser = null;
 
