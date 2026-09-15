@@ -1,10 +1,32 @@
-# Maven Target directory
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.p12
+
+# Maven & Build Output
 target/
 **/target/
 *.class
+*.jar
+*.war
 
-# IDE and OS files
+# IDE & Editor Files
 .idea/
 .vscode/
-*.DS_Store
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS & Log Files
+.DS_Store
+Thumbs.db
 *.log
+logs/
+
+# Node Dependencies (if applicable)
+node_modules/
