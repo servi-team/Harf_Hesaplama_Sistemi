@@ -11,7 +11,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/universities")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Geliştirme aşaması için
 public class UniversityController {
 
     private final UniversityService universityService;
