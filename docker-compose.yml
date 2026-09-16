@@ -7,14 +7,14 @@ services:
     container_name: harf_hesaplama_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: harf_hesaplama
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+      MYSQL_DATABASE: ${DB_NAME:-harf_hesaplama}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,9 +30,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/harf_hesaplama?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/$${DB_NAME:-harf_hesaplama}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=false
+      - SPRING_DATASOURCE_USERNAME=$${DB_USERNAME:-root}
+      - SPRING_DATASOURCE_PASSWORD=$${DB_PASSWORD:?DB_PASSWORD must be set}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     depends_on:
       db:

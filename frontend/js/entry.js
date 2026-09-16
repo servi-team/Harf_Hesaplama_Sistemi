@@ -38,7 +38,7 @@ function backToCards() {
 
 // ==================== GİRİŞ DOĞRULAMA ====================
 
-function attemptLogin() {
+async function attemptLogin() {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
 
@@ -52,12 +52,14 @@ function attemptLogin() {
         return;
     }
 
+    const passwordHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+    const hashedPassword = Array.from(new Uint8Array(passwordHash), byte => byte.toString(16).padStart(2, '0')).join('');
     const users = MOCK_DATA.mockUsers;
     let matchedUser = null;
 
     for (const userId in users) {
         const user = users[userId];
-        if (user.email === email && user.password === password) {
+        if (user.email === email && user.passwordHash === hashedPassword) {
             matchedUser = user;
             break;
         }
@@ -109,7 +111,7 @@ function showDemoCredentials() {
     for (const userId in users) {
         const u = users[userId];
         html += `
-            <div class="demo-user" onclick="fillCredentials('${escapeHtml(u.email)}', '${escapeHtml(u.password)}')">
+            <div class="demo-user" onclick="fillCredentials('${escapeHtml(u.email)}')">
                 <span class="demo-name">${escapeHtml(u.userName)}</span>
                 <span class="demo-email">${escapeHtml(u.email)}</span>
                 <span class="demo-badge">${roleLabels[u.role] || escapeHtml(u.role)}</span>
@@ -120,9 +122,9 @@ function showDemoCredentials() {
     container.innerHTML = html;
 }
 
-function fillCredentials(email, password) {
+function fillCredentials(email) {
     document.getElementById('login-email').value = email;
-    document.getElementById('login-password').value = password;
+    document.getElementById('login-password').value = '';
     hideLoginError();
 }
 

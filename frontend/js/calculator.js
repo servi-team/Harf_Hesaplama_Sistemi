@@ -23,8 +23,8 @@ function loadOfferingCriteria(offering, courseId) {
         .map(criterion => `
             <div class="criteria-item">
                 <div class="criteria-header">
-                    <label>${criterion.name}</label>
-                    <span class="criteria-weight">${criterion.weight}%</span>
+                    <label>${escapeHtml(criterion.name)}</label>
+                    <span class="criteria-weight">${Number(criterion.weight).toFixed(2)}%</span>
                 </div>
                 <div class="criteria-input-group">
                     <input 
@@ -36,7 +36,7 @@ function loadOfferingCriteria(offering, courseId) {
                         placeholder="0-100"
                     />
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${criterion.weight}%"></div>
+                        <div class="progress-fill" style="width: ${Math.min(100, Math.max(0, Number(criterion.weight) || 0))}%"></div>
                     </div>
                 </div>
             </div>
@@ -63,7 +63,7 @@ function calculateOfferingGrade(courseId, offering) {
         const criterionName = input.dataset.criterion;
         const value = parseFloat(input.value);
 
-        if (isNaN(value) || value < 0 || value > 100) {
+        if (!Number.isFinite(value) || value < 0 || value > 100) {
             allFilled = false;
             input.classList.add('error');
         } else {
@@ -86,9 +86,9 @@ function calculateOfferingGrade(courseId, offering) {
         const score = scores[criterion.name] || 0;
         totalScore += score * (criterion.weight / 100);
 
-        if (criterion.minRequiredScore !== undefined && score < criterion.minRequiredScore) {
+        if (Number.isFinite(Number(criterion.minRequiredScore)) && score < Number(criterion.minRequiredScore)) {
             failedMinScore = true;
-            failedMinInfo = `${criterion.name} baraj notunu (${criterion.minRequiredScore}) geçemediniz!`;
+            failedMinInfo = `${escapeHtml(criterion.name)} baraj notunu (${Number(criterion.minRequiredScore).toFixed(2)}) geçemediniz!`;
         }
     });
 
@@ -244,10 +244,10 @@ function calculateManualGrade(courseId) {
         const score = parseFloat(scoreInput.value);
         const minVal = minInput && minInput.value !== '' ? parseFloat(minInput.value) : NaN;
 
-        const isWeightInvalid = isNaN(weight) || weight < 0 || weight > 100;
-        const isScoreInvalid = isNaN(score) || score < 0 || score > 100;
-        const isMinInvalid = !isNaN(minVal) && (minVal < 0 || minVal > 100);
-        const isNameInvalid = !name || name.length > 100;
+        const isWeightInvalid = !Number.isFinite(weight) || weight <= 0 || weight > 100;
+        const isScoreInvalid = !Number.isFinite(score) || score < 0 || score > 100;
+        const isMinInvalid = !Number.isNaN(minVal) && (!Number.isFinite(minVal) || minVal < 0 || minVal > 100);
+        const isNameInvalid = !name || name.length > 100 || /[<>]/.test(name);
 
         if (isNameInvalid || isWeightInvalid || isScoreInvalid || isMinInvalid) {
             allValid = false;
@@ -264,7 +264,7 @@ function calculateManualGrade(courseId) {
             totalScore += score * (weight / 100);
             totalWeight += weight;
 
-            if (!isNaN(minVal) && score < minVal) {
+            if (Number.isFinite(minVal) && score < minVal) {
                 failedMinScore = true;
                 failedMinInfo = `${name} baraj notunu (${minVal}) geçemediniz!`;
             }

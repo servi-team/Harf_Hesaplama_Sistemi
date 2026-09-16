@@ -430,7 +430,7 @@ const MOCK_DATA = {
             userId: 'superadmin-001',
             userName: 'Sistem Yöneticisi',
             email: 'superadmin@harf.edu.tr',
-            password: 'super123',
+            passwordHash: '4e4c56e4a15f89f05c2f4c72613da2a18c9665d4f0d6acce16415eb06f9be776',
             role: 'superadmin',   // Tüm yetkilere sahip
             universityId: 'itu',
             departmentId: 'bilgisayar-muhendisligi',
@@ -440,7 +440,7 @@ const MOCK_DATA = {
             userId: 'admin-001',
             userName: 'Dr. Emre K.',
             email: 'admin@ytu.edu.tr',
-            password: 'admin123',
+            passwordHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
             role: 'admin',        // Yorum moderasyonu, veri girişi
             universityId: 'itu',
             departmentId: 'bilgisayar-muhendisligi',
@@ -450,7 +450,7 @@ const MOCK_DATA = {
             userId: 'user-001',
             userName: 'Ali K.',
             email: 'ali@std.ytu.edu.tr',
-            password: '123456',
+            passwordHash: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
             role: 'student',
             universityId: 'itu',
             departmentId: 'bilgisayar-muhendisligi',
@@ -460,7 +460,7 @@ const MOCK_DATA = {
             userId: 'user-002',
             userName: 'Zeynep A.',
             email: 'zeynep@std.ytu.edu.tr',
-            password: '123456',
+            passwordHash: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
             role: 'student',
             universityId: 'itu',
             departmentId: 'bilgisayar-muhendisligi',
@@ -470,7 +470,7 @@ const MOCK_DATA = {
             userId: 'user-003',
             userName: 'Mehmet D.',
             email: 'mehmet@std.ytu.edu.tr',
-            password: '123456',
+            passwordHash: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
             role: 'student',
             universityId: 'itu',
             departmentId: 'bilgisayar-muhendisligi',
@@ -557,6 +557,11 @@ const MOCK_DATA = {
     }
 })();
 
+// ==================== GÜVENLİK: İZİN VERİLEN ROLLER ====================
+// localStorage güvenilmez bir kaynaktır; depodan okunan roller bu listeye göre
+// doğrulanır ve yetki yükseltmesi (privilege escalation) engellenir.
+const ALLOWED_ROLES = ['guest', 'student', 'admin', 'superadmin'];
+
 // ==================== LOCALSTORAGE PERSISTENCE ====================
 function saveMockData() {
     try {
@@ -590,11 +595,34 @@ function saveMockData() {
             if (parsed.pendingData) MOCK_DATA.pendingData = parsed.pendingData;
             if (parsed.mockUsers) {
                 Object.keys(parsed.mockUsers).forEach(uId => {
-                    if (MOCK_DATA.mockUsers[uId]) {
-                        const pass = MOCK_DATA.mockUsers[uId].password;
-                        MOCK_DATA.mockUsers[uId] = { ...parsed.mockUsers[uId], password: pass };
+                    const stored = parsed.mockUsers[uId];
+                    if (!stored || typeof stored !== 'object') return;
+
+                    // Depodan gelen parola ve rol alanları ASLA doğrudan kullanılmaz.
+                    const safeFields = { ...stored };
+                    delete safeFields.password;
+                    delete safeFields.passwordHash;
+                    const storedRole = safeFields.role;
+                    delete safeFields.role;
+                    const known = MOCK_DATA.mockUsers[uId];
+
+                    if (known) {
+                        // Bilinen hesap: rol ve parola yalnızca kod içindeki tanımdan gelir.
+                        MOCK_DATA.mockUsers[uId] = {
+                            ...safeFields,
+                            userId: known.userId,
+                            role: known.role,
+                            passwordHash: known.passwordHash
+                        };
                     } else {
-                        MOCK_DATA.mockUsers[uId] = parsed.mockUsers[uId];
+                        // Bilinmeyen hesap: yetkisiz rol atanamaz, parola verilmez
+                        // (dolayısıyla bu kayıtla giriş yapılamaz).
+                        const safeRole = ALLOWED_ROLES.includes(storedRole) ? storedRole : 'student';
+                        MOCK_DATA.mockUsers[uId] = {
+                            ...safeFields,
+                            userId: String(safeFields.userId || uId),
+                            role: (safeRole === 'admin' || safeRole === 'superadmin') ? 'student' : safeRole
+                        };
                     }
                 });
             }

@@ -177,9 +177,9 @@ function renderComments(comments, courseId) {
             <div class="comment-card ${comment.status === 2 ? 'verified' : ''}" data-comment-id="${comment.id}">
                 <div class="comment-top">
                     <div class="comment-user-info">
-                        <span class="comment-avatar" style="background: ${roleColor}">${ownerName.charAt(0)}</span>
-                        <span class="comment-username clickable" onclick="showProfilePopup('${comment.userId}', event)">${ownerName}</span>
-                        <span class="comment-role-badge" style="color: ${roleColor}; border-color: ${roleColor}30; background: ${roleColor}10">${ROLE_LABELS[ownerRole]}</span>
+                        <span class="comment-avatar" style="background: ${escapeHtml(roleColor)}">${escapeHtml(ownerName.charAt(0))}</span>
+                        <span class="comment-username clickable" onclick="showProfilePopup('${escapeHtml(comment.userId)}', event)">${escapeHtml(ownerName)}</span>
+                        <span class="comment-role-badge" style="color: ${escapeHtml(roleColor)}; border-color: ${escapeHtml(roleColor)}30; background: ${escapeHtml(roleColor)}10">${escapeHtml(ROLE_LABELS[ownerRole])}</span>
                         ${comment.status === 2 ? '<span class="comment-verified" title="Admin Onaylı">✓</span>' : ''}
                     </div>
                     <div class="comment-meta">

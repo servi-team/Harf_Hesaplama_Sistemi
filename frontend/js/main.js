@@ -490,7 +490,7 @@ function populateProfUniSelect() {
 
     uniSelect.innerHTML = Object.keys(MOCK_DATA.universities).map(id => {
         const u = MOCK_DATA.universities[id];
-        return `<option value="${u.id}" ${u.id === selectedUniversity ? 'selected' : ''}>${u.name}</option>`;
+        return `<option value="${escapeHtml(u.id)}" ${u.id === selectedUniversity ? 'selected' : ''}>${escapeHtml(u.name)}</option>`;
     }).join('');
 
     onProfUniChange(uniSelect.value);
@@ -505,13 +505,17 @@ function onProfUniChange(uniId) {
 
     deptSelect.innerHTML = Object.keys(uni.departments).map(id => {
         const d = uni.departments[id];
-        return `<option value="${d.id}" ${d.id === selectedDepartment ? 'selected' : ''}>${d.name}</option>`;
+        return `<option value="${escapeHtml(d.id)}" ${d.id === selectedDepartment ? 'selected' : ''}>${escapeHtml(d.name)}</option>`;
     }).join('');
 }
 
 function saveProfileInfo(e) {
     e.preventDefault();
     const name = document.getElementById('prof-name').value.trim();
+    if (!name || name.length > 100 || /[<>]/.test(name)) {
+        alert('Ad 1-100 karakter arasında olmalı ve HTML karakterleri içermemelidir.');
+        return;
+    }
     localStorage.setItem('loggedInUserName', name);
     
     const label = document.getElementById('user-role-label');
@@ -588,10 +592,19 @@ function saveCustomCourse(e) {
     e.preventDefault();
     const code = document.getElementById('custom-course-code').value.trim();
     const name = document.getElementById('custom-course-name').value.trim();
-    const credit = parseInt(document.getElementById('custom-course-credit').value);
-    const ects = parseInt(document.getElementById('custom-course-ects').value);
+    const credit = Number(document.getElementById('custom-course-credit').value);
+    const ects = Number(document.getElementById('custom-course-ects').value);
     const semId = document.getElementById('custom-course-semester').value;
     const tag = document.getElementById('custom-course-tag').value;
+
+    if (!code || code.length > 20 || /[<>]/.test(code) || !name || name.length > 100 || /[<>]/.test(name)) {
+        alert('Ders kodu 1-20, ders adı 1-100 karakter olmalı ve HTML karakterleri içermemelidir.');
+        return;
+    }
+    if (!Number.isFinite(credit) || credit <= 0 || credit > 30 || !Number.isFinite(ects) || ects <= 0 || ects > 60) {
+        alert('Kredi 0-30, AKTS 0-60 arasında geçerli sayılar olmalıdır.');
+        return;
+    }
 
     const targetSem = semesters.find(s => s.id === semId);
     if (targetSem) {
