@@ -132,7 +132,7 @@ function createCourseElement(course) {
                 <button type="button" class="btn-course-action btn-delete-course" onclick="openDeleteModal('COURSE','${escapeHtml(course.id)}','${escapeHtml(deptId)}')" title="Dersi Sil">🗑️</button>
             </div>
             ` : ''}
-            <select class="grade-select" data-course-id="${escapeHtml(course.id)}" onclick="event.stopPropagation()" 
+            <select class="grade-select" data-course-id="${escapeHtml(course.id)}" onclick="event.stopPropagation(); selectCourse('${escapeHtml(course.id)}');" 
                     onchange="onGradeChange('${escapeHtml(course.id)}', this.value); highlightGradeRow(this.value);">
                 ${grades.map(g => `<option value="${g}" ${savedGrade === g ? 'selected' : ''}>${g || '—'}</option>`).join('')}
             </select>
@@ -154,12 +154,23 @@ function toggleSemester(semesterId) {
  * Ders seçildiğinde (tıklandığında)
  */
 function selectCourse(courseId) {
+    // Sol paneldeki seçili dersi görsel olarak vurgula
+    document.querySelectorAll('.course-item').forEach(el => el.classList.remove('active'));
+    const selectedEl = document.querySelector(`.course-item[data-course-id="${courseId}"]`);
+    if (selectedEl) selectedEl.classList.add('active');
+
     // Dersi orta panelde göster
-    loadCourseDetail(courseId);
+    if (typeof loadCourseDetail === 'function') {
+        loadCourseDetail(courseId);
+    }
     // Sağ paneldeki harf aralıklarını güncelle
-    updateGradeScale(courseId);
+    if (typeof updateGradeScale === 'function') {
+        updateGradeScale(courseId);
+    }
     // Sağ alt paneldeki yorumları yükle
-    loadComments(courseId);
+    if (typeof loadComments === 'function') {
+        loadComments(courseId);
+    }
 }
 
 /**

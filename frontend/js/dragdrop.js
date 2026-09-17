@@ -77,12 +77,29 @@ function loadCourseDetail(courseId) {
         return;
     }
 
-    document.getElementById('drop-placeholder').style.display = 'none';
+    const dropPlaceholder = document.getElementById('drop-placeholder');
+    if (dropPlaceholder) dropPlaceholder.style.display = 'none';
+
     const detailDiv = document.getElementById('course-detail');
+    if (!detailDiv) return;
     detailDiv.style.display = 'block';
 
-    // Ders için verileri al
-    const criteriaList = MOCK_DATA.gradingCriteria[courseId] || [];
+    // Ders için verileri al (Eğer özel hoca kriteri yoksa varsayılan Vize %40 - Final %60 kriterini sun)
+    let criteriaList = MOCK_DATA.gradingCriteria[courseId] || [];
+    if (criteriaList.length === 0) {
+        criteriaList = [
+            {
+                id: `default-kriter-${courseId}`,
+                label: 'Standart Değerlendirme (Vize %40 - Final %60)',
+                instructorName: 'Standart Müfredat',
+                year: 2025,
+                criteria: [
+                    { name: 'Vize', weight: 40, order: 1 },
+                    { name: 'Final', weight: 60, minRequiredScore: 40, order: 2 }
+                ]
+            }
+        ];
+    }
     const scaleList = MOCK_DATA.gradeScales[courseId] || [];
 
     // Detay içeriğini oluştur
@@ -91,7 +108,7 @@ function loadCourseDetail(courseId) {
     // Event listener'ları ekle
     setupCourseDetailEvents(courseId, criteriaList, scaleList);
 
-    // Tanımlı kriter varsa ilk kriteri otomatik yükle
+    // Kriteri otomatik yükle
     if (criteriaList.length > 0) {
         const criteriaSelect = document.getElementById('criteria-select');
         if (criteriaSelect) criteriaSelect.value = '0';
@@ -103,11 +120,16 @@ function loadCourseDetail(courseId) {
  * Kurs ID'sine göre ders objesi bulur
  */
 function findCourseById(courseId) {
-    const departmentId = localStorage.getItem('selectedDepartment');
-    if (!departmentId) return null;
+    if (typeof semesters !== 'undefined' && Array.isArray(semesters) && semesters.length > 0) {
+        for (const semester of semesters) {
+            const course = semester.courses.find(c => c.id === courseId);
+            if (course) return course;
+        }
+    }
 
-    const semesters = MOCK_DATA.semesters[departmentId] || [];
-    for (const semester of semesters) {
+    const departmentId = localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
+    const semesterList = MOCK_DATA.semesters[departmentId] || MOCK_DATA.semesters['bilgisayar-muhendisligi'] || [];
+    for (const semester of semesterList) {
         const course = semester.courses.find(c => c.id === courseId);
         if (course) return course;
     }
