@@ -309,7 +309,10 @@ function loadCriteriaContent(criteriaData, courseId) {
     const dept = localStorage.getItem('selectedDepartment') || 'genel';
     let savedScores = {};
     try {
-     container.innerHTML = `
+        savedScores = JSON.parse(localStorage.getItem(`savedScores_${uni}_${dept}_${courseId}`) || '{}');
+    } catch (e) {}
+
+    container.innerHTML = `
         <div class="criteria-section">
             <div class="criteria-header-info">
                 <span class="criteria-instructor">${escapeHtml(criteriaData.instructorName)}</span>
@@ -366,8 +369,6 @@ function loadScaleToRightPanel(scaleData) {
     container.innerHTML = `
         <div class="grade-scale-info" style="font-size: 0.65rem; color: var(--text-muted); padding: 0.25rem 0.5rem; margin-bottom: 0.25rem;">
             ${escapeHtml(scaleData.label)}${scaleData.totalStudents ? ` • ${scaleData.totalStudents} öğrenci` : ''}
-        </div>`gin-bottom: 0.25rem;">
-            ${scaleData.label}${scaleData.totalStudents ? ` • ${scaleData.totalStudents} öğrenci` : ''}
         </div>
         <div class="grade-scale-table">
             ${scaleData.scale.map(g => `

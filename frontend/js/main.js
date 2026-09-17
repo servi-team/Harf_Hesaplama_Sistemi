@@ -51,6 +51,7 @@ function loadSemesters() {
     semesters = semesterData;
     renderSemesters();
     updateCourseCount();
+    updateOverallGPA();
 }
 
 /**
