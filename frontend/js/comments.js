@@ -68,6 +68,14 @@ function loadComments(courseId) {
     currentCourseIdForComments = courseId;
     const allComments = MOCK_DATA.comments[courseId] || [];
 
+    // Misafir kullanıcılar ders yorumlarını ve oylamaları göremez
+    if (isGuest()) {
+        renderGuestLockedComments();
+        updateCommentCountLocked();
+        hideCommentForm();
+        return;
+    }
+
     // Kayıtlı olmayan kullanıcıların yorumlarını sil (diziden kalıcı olarak kaldır)
     for (let i = allComments.length - 1; i >= 0; i--) {
         if (!MOCK_DATA.mockUsers[allComments[i].userId]) {
@@ -80,30 +88,53 @@ function loadComments(courseId) {
 
     renderComments(sorted, courseId);
     updateCommentCount(visibleComments.length);
+    showCommentForm();
+}
 
-    if (isGuest()) {
-        hideCommentForm();
-    } else {
-        showCommentForm();
-    }
+function renderGuestLockedComments() {
+    const list = document.getElementById('comments-list');
+    if (!list) return;
+
+    list.innerHTML = `
+        <div class="guest-comments-lock" style="padding: 1.5rem 1rem; text-align: center; background: var(--bg-dark); border: 1px dashed var(--border); border-radius: var(--radius-md); margin-top: 0.5rem;">
+            <div style="font-size: 2.2rem; margin-bottom: 0.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🔒</div>
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem;">Ders Yorumları Kilitli</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.1rem; line-height: 1.45;">
+                Ders yorumlarını okumak, önerileri görmek ve yorum yazabilmek için lütfen kaydolun veya giriş yapın.
+            </p>
+            <button type="button" class="btn-primary" style="width: 100%; padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-md); border: none; cursor: pointer; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; box-shadow: var(--shadow-sm);" onclick="window.location.href='landing.html'">
+                <span>🔑 Giriş Yap / Kaydol</span>
+            </button>
+        </div>
+    `;
+}
+
+function updateCommentCountLocked() {
+    const countEl = document.getElementById('comment-count');
+    if (countEl) countEl.textContent = 'Yorumlar (🔒 Kilitli)';
 }
 
 function resetComments() {
     currentCourseIdForComments = null;
     const list = document.getElementById('comments-list');
     if (list) {
-        list.innerHTML = `
-            <div class="empty-comments">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="36" height="36" style="opacity: 0.3; margin-bottom: 0.5rem;">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                </svg>
-                <p>Ders seçildiğinde yorumlar burada görünecek.</p>
-            </div>
-        `;
+        if (isGuest()) {
+            renderGuestLockedComments();
+            updateCommentCountLocked();
+        } else {
+            list.innerHTML = `
+                <div class="empty-comments">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="36" height="36" style="opacity: 0.3; margin-bottom: 0.5rem;">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                    <p>Ders seçildiğinde yorumlar burada görünecek.</p>
+                </div>
+            `;
+            updateCommentCount(0);
+        }
     }
     hideCommentForm();
     closeProfilePopup();
-    updateCommentCount(0);
 }
 
 // ==================== SIRALAMA ====================

@@ -10,6 +10,15 @@ function selectUserType(type) {
     localStorage.removeItem('loggedInUserId');
     localStorage.removeItem('loggedInUserName');
 
+    if (type === 'guest') {
+        // Misafir modunda kalıcı not saklanmaz — eski misafir anahtarlarını temizle
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('grades_guest_') || key.startsWith('savedScores_guest_') || key.startsWith('gradeNotes_guest_') || key.startsWith('grades_genel_')) {
+                localStorage.removeItem(key);
+            }
+        });
+    }
+
     const savedUni = localStorage.getItem('selectedUniversity') || 'itu';
     const savedDept = localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
     localStorage.setItem('selectedUniversity', savedUni);

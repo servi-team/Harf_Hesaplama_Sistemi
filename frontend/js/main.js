@@ -277,16 +277,11 @@ function getGradesStorageKey() {
  * Notları localStorage'a kaydeder
  */
 function saveGrades() {
-    const key = getGradesStorageKey();
-    localStorage.setItem(key, JSON.stringify(selectedGrades));
-
-    // Misafir modundaysa misafir key'ine de yedekle
     const prefix = getStorageUserPrefix();
-    const uni = selectedUniversity || localStorage.getItem('selectedUniversity') || 'genel';
-    const dept = selectedDepartment || localStorage.getItem('selectedDepartment') || 'genel';
-    if (prefix === 'guest') {
-        localStorage.setItem(`grades_guest_${uni}_${dept}`, JSON.stringify(selectedGrades));
-        localStorage.setItem(`grades_${uni}_${dept}`, JSON.stringify(selectedGrades));
+    // Yalnızca kayıtlı (giriş yapmış) kullanıcıların verisi kalıcı hafızaya kaydedilir
+    if (prefix !== 'guest') {
+        const key = getGradesStorageKey();
+        localStorage.setItem(key, JSON.stringify(selectedGrades));
     }
 }
 
@@ -294,29 +289,23 @@ function saveGrades() {
  * Kaydedilmiş notları yükler
  */
 function loadSavedGrades() {
-    const key = getGradesStorageKey();
-    let saved = localStorage.getItem(key);
+    const prefix = getStorageUserPrefix();
 
-    const uni = selectedUniversity || localStorage.getItem('selectedUniversity') || 'genel';
-    const dept = selectedDepartment || localStorage.getItem('selectedDepartment') || 'genel';
-
-    // Eğer oturum açmış kullanıcının verisi henüz yoksa, misafir modunda girilmiş notları kontrol et ve aktar
-    if (!saved) {
-        const guestSaved = localStorage.getItem(`grades_guest_${uni}_${dept}`) || localStorage.getItem(`grades_${uni}_${dept}`);
-        if (guestSaved) {
-            saved = guestSaved;
-            localStorage.setItem(key, saved);
-        }
-    }
-
-    if (saved) {
-        try {
-            selectedGrades = JSON.parse(saved);
-        } catch (e) {
+    if (prefix === 'guest') {
+        // Misafir kullanıcılar için her girişte notlar sıfırlanır (oturumluk hesaplama)
+        selectedGrades = {};
+    } else {
+        const key = getGradesStorageKey();
+        const saved = localStorage.getItem(key);
+        if (saved) {
+            try {
+                selectedGrades = JSON.parse(saved);
+            } catch (e) {
+                selectedGrades = {};
+            }
+        } else {
             selectedGrades = {};
         }
-    } else {
-        selectedGrades = {};
     }
     updateOverallGPA();
 }
