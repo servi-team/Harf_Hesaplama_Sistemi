@@ -79,10 +79,39 @@ async function attemptLogin() {
     const userUni = matchedUser.universityId || localStorage.getItem('selectedUniversity') || 'itu';
     const userDept = matchedUser.departmentId || localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
 
-    localStorage.setItem('selectedUniversity', userUni);
-    localStorage.setItem('selectedDepartment', userDept);
+    // Misafir modunda hesaplanan notları oturum açan hesabın kaydedilmiş verilerine aktar
+    syncGuestGradesToUser(matchedUser.userId, userUni, userDept);
 
     window.location.href = 'main.html';
+}
+
+/**
+ * Misafir modunda hesaplanan notları ve ders bilgilerini oturum açan hesaba aktarır
+ */
+function syncGuestGradesToUser(userId, uni, dept) {
+    if (!userId) return;
+    const currentUni = uni || localStorage.getItem('selectedUniversity') || 'itu';
+    const currentDept = dept || localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
+
+    const guestKey = `grades_guest_${currentUni}_${currentDept}`;
+    const legacyKey = `grades_${currentUni}_${currentDept}`;
+    const userKey = `grades_user_${userId}_${currentUni}_${currentDept}`;
+
+    const guestGrades = localStorage.getItem(guestKey) || localStorage.getItem(legacyKey);
+    const userGrades = localStorage.getItem(userKey);
+
+    if (guestGrades) {
+        if (!userGrades) {
+            localStorage.setItem(userKey, guestGrades);
+        } else {
+            try {
+                const parsedGuest = JSON.parse(guestGrades);
+                const parsedUser = JSON.parse(userGrades);
+                const merged = { ...parsedGuest, ...parsedUser };
+                localStorage.setItem(userKey, JSON.stringify(merged));
+            } catch (e) {}
+        }
+    }
 }
 
 // ==================== DEMO BİLGİLERİ ====================

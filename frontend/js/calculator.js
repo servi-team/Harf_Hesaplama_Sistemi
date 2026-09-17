@@ -416,12 +416,17 @@ function saveGradeToList(courseId, letterGrade) {
         const noteText = noteInput.value.trim().substring(0, 250);
         const uni = localStorage.getItem('selectedUniversity') || 'genel';
         const dept = localStorage.getItem('selectedDepartment') || 'genel';
+        const prefix = typeof getStorageUserPrefix === 'function' ? getStorageUserPrefix() : 'guest';
+        const key = `gradeNotes_${prefix}_${uni}_${dept}`;
         let gradeNotes = {};
         try {
-            gradeNotes = JSON.parse(localStorage.getItem(`gradeNotes_${uni}_${dept}`) || '{}');
+            gradeNotes = JSON.parse(localStorage.getItem(key) || '{}');
         } catch(e) {}
         gradeNotes[courseId] = noteText;
-        localStorage.setItem(`gradeNotes_${uni}_${dept}`, JSON.stringify(gradeNotes));
+        localStorage.setItem(key, JSON.stringify(gradeNotes));
+        if (prefix === 'guest') {
+            localStorage.setItem(`gradeNotes_${uni}_${dept}`, JSON.stringify(gradeNotes));
+        }
     }
 
     // Sol paneldeki select elementini güncelle

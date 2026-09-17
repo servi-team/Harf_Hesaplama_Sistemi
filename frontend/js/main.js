@@ -49,6 +49,7 @@ function loadSemesters() {
     }
 
     semesters = semesterData;
+    loadSavedGrades();
     renderSemesters();
     updateCourseCount();
     updateOverallGPA();
@@ -102,9 +103,12 @@ function createCourseElement(course) {
     const uni = selectedUniversity || 'genel';
     const dept = selectedDepartment || 'genel';
 
+    const prefix = typeof getStorageUserPrefix === 'function' ? getStorageUserPrefix() : 'guest';
     let gradeNotes = {};
     try {
-        gradeNotes = JSON.parse(localStorage.getItem(`gradeNotes_${uni}_${dept}`) || '{}');
+        const notesKey = `gradeNotes_${prefix}_${uni}_${dept}`;
+        const legacyNotesKey = `gradeNotes_${uni}_${dept}`;
+        gradeNotes = JSON.parse(localStorage.getItem(notesKey) || localStorage.getItem(legacyNotesKey) || '{}');
     } catch (e) {}
 
     const courseNote = gradeNotes[course.id];
@@ -239,28 +243,71 @@ function findCourseById(courseId) {
 }
 
 /**
+ * Aktif kullanıcı ön ekini döndürür ('user_<id>' veya 'guest')
+ */
+function getStorageUserPrefix() {
+    const userId = (typeof MOCK_DATA !== 'undefined' && MOCK_DATA.mockCurrentUser) 
+        ? MOCK_DATA.mockCurrentUser 
+        : localStorage.getItem('loggedInUserId');
+    return userId ? `user_${userId}` : 'guest';
+}
+
+/**
+ * Notlar için localStorage key'ini döndürür
+ */
+function getGradesStorageKey() {
+    const prefix = getStorageUserPrefix();
+    const uni = selectedUniversity || localStorage.getItem('selectedUniversity') || 'genel';
+    const dept = selectedDepartment || localStorage.getItem('selectedDepartment') || 'genel';
+    return `grades_${prefix}_${uni}_${dept}`;
+}
+
+/**
  * Notları localStorage'a kaydeder
  */
 function saveGrades() {
-    const key = `grades_${selectedUniversity}_${selectedDepartment}`;
+    const key = getGradesStorageKey();
     localStorage.setItem(key, JSON.stringify(selectedGrades));
+
+    // Misafir modundaysa misafir key'ine de yedekle
+    const prefix = getStorageUserPrefix();
+    const uni = selectedUniversity || localStorage.getItem('selectedUniversity') || 'genel';
+    const dept = selectedDepartment || localStorage.getItem('selectedDepartment') || 'genel';
+    if (prefix === 'guest') {
+        localStorage.setItem(`grades_guest_${uni}_${dept}`, JSON.stringify(selectedGrades));
+        localStorage.setItem(`grades_${uni}_${dept}`, JSON.stringify(selectedGrades));
+    }
 }
 
 /**
  * Kaydedilmiş notları yükler
  */
 function loadSavedGrades() {
-    const key = `grades_${selectedUniversity}_${selectedDepartment}`;
-    const saved = localStorage.getItem(key);
+    const key = getGradesStorageKey();
+    let saved = localStorage.getItem(key);
+
+    const uni = selectedUniversity || localStorage.getItem('selectedUniversity') || 'genel';
+    const dept = selectedDepartment || localStorage.getItem('selectedDepartment') || 'genel';
+
+    // Eğer oturum açmış kullanıcının verisi henüz yoksa, misafir modunda girilmiş notları kontrol et ve aktar
+    if (!saved) {
+        const guestSaved = localStorage.getItem(`grades_guest_${uni}_${dept}`) || localStorage.getItem(`grades_${uni}_${dept}`);
+        if (guestSaved) {
+            saved = guestSaved;
+            localStorage.setItem(key, saved);
+        }
+    }
 
     if (saved) {
         try {
             selectedGrades = JSON.parse(saved);
-            updateOverallGPA();
         } catch (e) {
             selectedGrades = {};
         }
+    } else {
+        selectedGrades = {};
     }
+    updateOverallGPA();
 }
 
 /**

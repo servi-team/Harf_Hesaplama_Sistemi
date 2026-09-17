@@ -307,9 +307,12 @@ function loadCriteriaContent(criteriaData, courseId) {
 
     const uni = localStorage.getItem('selectedUniversity') || 'genel';
     const dept = localStorage.getItem('selectedDepartment') || 'genel';
+    const prefix = typeof getStorageUserPrefix === 'function' ? getStorageUserPrefix() : 'guest';
     let savedScores = {};
     try {
-        savedScores = JSON.parse(localStorage.getItem(`savedScores_${uni}_${dept}_${courseId}`) || '{}');
+        const scoresKey = `savedScores_${prefix}_${uni}_${dept}_${courseId}`;
+        const legacyScoresKey = `savedScores_${uni}_${dept}_${courseId}`;
+        savedScores = JSON.parse(localStorage.getItem(scoresKey) || localStorage.getItem(legacyScoresKey) || '{}');
     } catch (e) {}
 
     container.innerHTML = `
@@ -456,12 +459,16 @@ function recalculateGrade(courseId) {
         }
     }
 
-    // Girilen notları ders özelinde localStorage'a kaydet
     if (Object.keys(scoresToSave).length > 0) {
         try {
             const uni = localStorage.getItem('selectedUniversity') || 'genel';
             const dept = localStorage.getItem('selectedDepartment') || 'genel';
-            localStorage.setItem(`savedScores_${uni}_${dept}_${courseId}`, JSON.stringify(scoresToSave));
+            const prefix = typeof getStorageUserPrefix === 'function' ? getStorageUserPrefix() : 'guest';
+            const key = `savedScores_${prefix}_${uni}_${dept}_${courseId}`;
+            localStorage.setItem(key, JSON.stringify(scoresToSave));
+            if (prefix === 'guest') {
+                localStorage.setItem(`savedScores_${uni}_${dept}_${courseId}`, JSON.stringify(scoresToSave));
+            }
         } catch(e) {}
     }
 }
