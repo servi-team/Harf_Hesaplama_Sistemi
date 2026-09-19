@@ -92,6 +92,26 @@ function switchAuthTab(tabName) {
     }
 }
 
+// ==================== ÜNİVERSİTE ALGISI ====================
+
+/**
+ * E-posta uzantısından üniversite kimliğini (ytu, itu, boun, odtu) otomatik tespit eder
+ */
+function detectUniversityFromEmail(email) {
+    if (!email) return null;
+    const cleanEmail = email.trim().toLowerCase();
+    const parts = cleanEmail.split('@');
+    if (parts.length < 2) return null;
+    const domain = parts[1];
+
+    if (domain.includes('yildiz.edu.tr') || domain.includes('ytu.edu.tr')) return 'ytu';
+    if (domain.includes('itu.edu.tr')) return 'itu';
+    if (domain.includes('boun.edu.tr') || domain.includes('bogazici.edu.tr')) return 'boun';
+    if (domain.includes('metu.edu.tr') || domain.includes('odtu.edu.tr')) return 'odtu';
+
+    return null;
+}
+
 // ==================== ÖĞRENCİ KAYDI ====================
 
 async function attemptRegister() {
@@ -148,7 +168,8 @@ async function attemptRegister() {
     const passwordHashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
     const hashedPassword = Array.from(new Uint8Array(passwordHashBuffer), byte => byte.toString(16).padStart(2, '0')).join('');
 
-    const userUni = localStorage.getItem('selectedUniversity') || 'itu';
+    const detectedUni = detectUniversityFromEmail(email);
+    const userUni = detectedUni || localStorage.getItem('selectedUniversity') || 'ytu';
     const userDept = localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
 
     const newUser = {
@@ -171,12 +192,13 @@ async function attemptRegister() {
     localStorage.setItem('userType', 'student');
     localStorage.setItem('loggedInUserId', userId);
     localStorage.setItem('loggedInUserName', fullName);
+    localStorage.setItem('selectedUniversity', userUni);
 
     // Misafir modunda girilmiş notlar varsa yeni kullanıcıya aktar
     syncGuestGradesToUser(userId, userUni, userDept);
 
     alert(`✅ Kaydınız başarıyla tamamlandı!\nHoş geldiniz, ${fullName}.`);
-    window.location.href = 'main.html';
+    window.location.href = 'wizard.html?autoUni=true';
 }
 
 // ==================== GİRİŞ DOĞRULAMA ====================
@@ -214,18 +236,27 @@ async function attemptLogin() {
         return;
     }
 
-    // Başarılı giriş — rol otomatik belirlenir ve kayıtlı üniversite/bölüm korunur
+    // Başarılı giriş — rol otomatik belirlenir ve e-postaya göre üniversite güncellenir
+    const detectedUni = detectUniversityFromEmail(email) || matchedUser.universityId;
+    const userUni = detectedUni || localStorage.getItem('selectedUniversity') || 'ytu';
+    const userDept = matchedUser.departmentId || localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
+
+    matchedUser.universityId = userUni;
+
     localStorage.setItem('userType', matchedUser.role);
     localStorage.setItem('loggedInUserId', matchedUser.userId);
     localStorage.setItem('loggedInUserName', matchedUser.userName);
+    localStorage.setItem('selectedUniversity', userUni);
+    localStorage.setItem('selectedDepartment', userDept);
 
-    const userUni = matchedUser.universityId || localStorage.getItem('selectedUniversity') || 'itu';
-    const userDept = matchedUser.departmentId || localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
+    if (typeof saveMockData === 'function') {
+        saveMockData();
+    }
 
     // Misafir modunda hesaplanan notları oturum açan hesabın kaydedilmiş verilerine aktar
     syncGuestGradesToUser(matchedUser.userId, userUni, userDept);
 
-    window.location.href = 'main.html';
+    window.location.href = 'wizard.html?autoUni=true';
 }
 
 /**

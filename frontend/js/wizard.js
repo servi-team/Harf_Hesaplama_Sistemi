@@ -11,12 +11,14 @@ let selectedDepartment = null;
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    const isChange = new URLSearchParams(window.location.search).get('change') === 'true';
+    const urlParams = new URLSearchParams(window.location.search);
+    const isChange = urlParams.get('change') === 'true';
+    const isAutoUni = urlParams.get('autoUni') === 'true';
     const savedUni = localStorage.getItem('selectedUniversity') || 'itu';
     const savedDept = localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
 
-    // Eğer kullanıcı özel olarak bölüm değiştir demediyse, sihirbazı atla ve doğrudan ana ekrana git!
-    if (!isChange) {
+    // Eğer ne bölüm değiştir ne de otomatik üniversite algısı isteği yoksa ana sayfaya git
+    if (!isChange && !isAutoUni) {
         localStorage.setItem('selectedUniversity', savedUni);
         localStorage.setItem('selectedDepartment', savedDept);
         if (!localStorage.getItem('userType')) localStorage.setItem('userType', 'student');
@@ -25,7 +27,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setupEventListeners();
-    updateUI();
+
+    if (isAutoUni && savedUni) {
+        selectedUniversity = savedUni;
+        const uniSelect = document.getElementById('university-select');
+        if (uniSelect) uniSelect.value = savedUni;
+        loadFaculties(savedUni);
+        goToStep(2);
+    } else {
+        updateUI();
+    }
 });
 
 function setupEventListeners() {
@@ -111,11 +122,13 @@ function goToStep(step) {
     updateUI();
 }
 
-function prevStep() {
-    if (currentStep > 1) {
+function prevStep(targetStep) {
+    if (targetStep) {
+        currentStep = targetStep;
+    } else if (currentStep > 1) {
         currentStep--;
-        updateUI();
     }
+    updateUI();
 }
 
 function updateUI() {
@@ -138,10 +151,11 @@ function updateUI() {
     document.getElementById(`step-${currentStep}`).classList.add('active');
 
     // Başlık güncelleme
+    const uniName = selectedUniversity && MOCK_DATA.universities[selectedUniversity] ? MOCK_DATA.universities[selectedUniversity].name : '';
     const titles = [
         "Lütfen üniversitenizi seçin",
-        "Fakültenizi seçin",
-        "Bölümünüzü seçin"
+        uniName ? `🎓 ${uniName} — Fakültenizi seçin` : "Fakültenizi seçin",
+        uniName ? `🎓 ${uniName} — Bölümünüzü seçin` : "Bölümünüzü seçin"
     ];
     document.getElementById('step-title').textContent = titles[currentStep - 1];
 
