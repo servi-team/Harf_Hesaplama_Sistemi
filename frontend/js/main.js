@@ -626,6 +626,12 @@ function loadMyComments() {
 
 // Özel Ders / Yan Dal Ekleme
 function openCustomCourseModal() {
+    const isGuest = !MOCK_DATA.mockCurrentUser || localStorage.getItem('userType') === 'guest';
+    if (isGuest) {
+        alert('🔒 Özel ders / yan dal eklemek ve özel harf skalalarınızı tanımlamak için lütfen siteye kaydolun.');
+        return;
+    }
+
     const semSelect = document.getElementById('custom-course-semester');
     if (!semSelect) return;
 

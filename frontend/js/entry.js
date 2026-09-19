@@ -256,7 +256,12 @@ async function attemptLogin() {
     // Misafir modunda hesaplanan notları oturum açan hesabın kaydedilmiş verilerine aktar
     syncGuestGradesToUser(matchedUser.userId, userUni, userDept);
 
-    window.location.href = 'wizard.html?autoUni=true';
+    // Kayıtlı kullanıcının zaten seçili bölümü varsa doğrudan ana sayfaya git, yoksa sihirbaza yönlendir
+    if (matchedUser.departmentId) {
+        window.location.href = 'main.html';
+    } else {
+        window.location.href = 'wizard.html?autoUni=true';
+    }
 }
 
 /**

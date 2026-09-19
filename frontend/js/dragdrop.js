@@ -274,8 +274,14 @@ function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
             const value = e.target.value;
             const container = document.getElementById('criteria-container');
             const manualWrapper = document.getElementById('manual-mode-wrapper');
+            const isGuest = !MOCK_DATA.mockCurrentUser || localStorage.getItem('userType') === 'guest';
 
             if (value === 'custom') {
+                if (isGuest) {
+                    alert('🔒 Özel değerlendirme kriteri oluşturabilmek için lütfen siteye kaydolunuz.');
+                    e.target.value = criteriaList.length > 0 ? '0' : '';
+                    return;
+                }
                 if (container) container.innerHTML = '';
                 if (manualWrapper) manualWrapper.innerHTML = createManualCriteriaHTML(course);
             } else {
@@ -293,6 +299,8 @@ function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
     if (scaleSelect) {
         scaleSelect.addEventListener('change', (e) => {
             const value = e.target.value;
+            const isGuest = !MOCK_DATA.mockCurrentUser || localStorage.getItem('userType') === 'guest';
+
             if (value === 'default') {
                 // Varsayılan skala
                 loadScaleToRightPanel({
@@ -301,6 +309,16 @@ function setupCourseDetailEvents(courseId, criteriaList, scaleList) {
                     totalStudents: null
                 });
             } else if (value === 'custom') {
+                if (isGuest) {
+                    alert('🔒 Kendi özel harf skalasını (elle gir) tanımlayabilmek ve not aralıklarını özelleştirmek için lütfen siteye kaydolunuz.');
+                    e.target.value = 'default';
+                    loadScaleToRightPanel({
+                        label: 'Varsayılan',
+                        scale: MOCK_DATA.defaultGradeScale,
+                        totalStudents: null
+                    });
+                    return;
+                }
                 if (typeof openAddModal === 'function' && currentSelectedCourseId) {
                     openAddModal('SCALE', currentSelectedCourseId);
                 } else {
@@ -483,13 +501,13 @@ function recalculateGrade(courseId) {
 
     if (Object.keys(scoresToSave).length > 0) {
         try {
-            const uni = localStorage.getItem('selectedUniversity') || 'genel';
-            const dept = localStorage.getItem('selectedDepartment') || 'genel';
             const prefix = typeof getStorageUserPrefix === 'function' ? getStorageUserPrefix() : 'guest';
-            const key = `savedScores_${prefix}_${uni}_${dept}_${courseId}`;
-            localStorage.setItem(key, JSON.stringify(scoresToSave));
-            if (prefix === 'guest') {
-                localStorage.setItem(`savedScores_${uni}_${dept}_${courseId}`, JSON.stringify(scoresToSave));
+            // Yalnızca kayıtlı (giriş yapmış) kullanıcılar için sınav notları kalıcı hafızaya saklanır
+            if (prefix !== 'guest') {
+                const uni = localStorage.getItem('selectedUniversity') || 'genel';
+                const dept = localStorage.getItem('selectedDepartment') || 'genel';
+                const key = `savedScores_${prefix}_${uni}_${dept}_${courseId}`;
+                localStorage.setItem(key, JSON.stringify(scoresToSave));
             }
         } catch(e) {}
     }

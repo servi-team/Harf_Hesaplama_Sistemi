@@ -414,18 +414,17 @@ function saveGradeToList(courseId, letterGrade) {
     const noteInput = document.getElementById(`result-grade-note-${courseId}`);
     if (noteInput && noteInput.value.trim() !== '') {
         const noteText = noteInput.value.trim().substring(0, 250);
-        const uni = localStorage.getItem('selectedUniversity') || 'genel';
-        const dept = localStorage.getItem('selectedDepartment') || 'genel';
         const prefix = typeof getStorageUserPrefix === 'function' ? getStorageUserPrefix() : 'guest';
-        const key = `gradeNotes_${prefix}_${uni}_${dept}`;
-        let gradeNotes = {};
-        try {
-            gradeNotes = JSON.parse(localStorage.getItem(key) || '{}');
-        } catch(e) {}
-        gradeNotes[courseId] = noteText;
-        localStorage.setItem(key, JSON.stringify(gradeNotes));
-        if (prefix === 'guest') {
-            localStorage.setItem(`gradeNotes_${uni}_${dept}`, JSON.stringify(gradeNotes));
+        if (prefix !== 'guest') {
+            const uni = localStorage.getItem('selectedUniversity') || 'genel';
+            const dept = localStorage.getItem('selectedDepartment') || 'genel';
+            const key = `gradeNotes_${prefix}_${uni}_${dept}`;
+            let gradeNotes = {};
+            try {
+                gradeNotes = JSON.parse(localStorage.getItem(key) || '{}');
+            } catch(e) {}
+            gradeNotes[courseId] = noteText;
+            localStorage.setItem(key, JSON.stringify(gradeNotes));
         }
     }
 
