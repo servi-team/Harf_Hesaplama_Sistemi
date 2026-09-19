@@ -615,13 +615,13 @@ function saveMockData() {
                             passwordHash: known.passwordHash
                         };
                     } else {
-                        // Bilinmeyen hesap: yetkisiz rol atanamaz, parola verilmez
-                        // (dolayısıyla bu kayıtla giriş yapılamaz).
-                        const safeRole = ALLOWED_ROLES.includes(storedRole) ? storedRole : 'student';
+                        // Dynamically registered student account: role is locked to 'student', passwordHash preserved for login
+                        const safeRole = 'student';
                         MOCK_DATA.mockUsers[uId] = {
                             ...safeFields,
                             userId: String(safeFields.userId || uId),
-                            role: (safeRole === 'admin' || safeRole === 'superadmin') ? 'student' : safeRole
+                            role: safeRole,
+                            passwordHash: stored.passwordHash || ''
                         };
                     }
                 });

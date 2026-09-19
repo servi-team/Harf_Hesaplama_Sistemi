@@ -145,6 +145,37 @@
     }
 }
 
+/* ==================== AUTH TABS ==================== */
+.auth-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.auth-tab-btn {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.auth-tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.auth-tab-btn.active {
+    color: var(--primary-light);
+    border-bottom-color: var(--primary);
+    background: rgba(99, 102, 241, 0.12);
+}
+
 /* ==================== LOGIN FORM ==================== */
 .login-form-container {
     display: flex;

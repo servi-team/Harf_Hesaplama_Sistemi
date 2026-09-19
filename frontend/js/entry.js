@@ -45,6 +45,140 @@ function backToCards() {
     hideLoginError();
 }
 
+// ==================== SEKME YÖNETİMİ (GİRİŞ YAP / KAYDOL) ====================
+
+function switchAuthTab(tabName) {
+    hideLoginError();
+    const loginTabBtn = document.getElementById('tab-login-btn');
+    const registerTabBtn = document.getElementById('tab-register-btn');
+
+    const headerTitle = document.getElementById('login-form-header-title');
+    const headerSubtitle = document.getElementById('login-form-header-subtitle');
+
+    const loginFields = document.getElementById('login-fields');
+    const registerFields = document.getElementById('register-fields');
+    const demoCredentials = document.getElementById('demo-credentials');
+
+    if (tabName === 'register') {
+        if (loginTabBtn) loginTabBtn.classList.remove('active');
+        if (registerTabBtn) registerTabBtn.classList.add('active');
+
+        if (headerTitle) headerTitle.textContent = 'Öğrenci Kaydı';
+        if (headerSubtitle) headerSubtitle.textContent = 'Yalnızca üniversite öğrenci e-postası (.edu.tr) ile kaydolabilirsiniz';
+
+        if (loginFields) loginFields.style.display = 'none';
+        if (registerFields) registerFields.style.display = 'block';
+        if (demoCredentials) demoCredentials.style.display = 'none';
+
+        setTimeout(() => {
+            const nameIn = document.getElementById('reg-fullname');
+            if (nameIn) nameIn.focus();
+        }, 150);
+    } else {
+        if (registerTabBtn) registerTabBtn.classList.remove('active');
+        if (loginTabBtn) loginTabBtn.classList.add('active');
+
+        if (headerTitle) headerTitle.textContent = 'Giriş Yap';
+        if (headerSubtitle) headerSubtitle.textContent = 'E-posta ve şifrenizi girin — rolünüz otomatik belirlenir';
+
+        if (registerFields) registerFields.style.display = 'none';
+        if (loginFields) loginFields.style.display = 'block';
+        if (demoCredentials) demoCredentials.style.display = 'block';
+
+        setTimeout(() => {
+            const emailIn = document.getElementById('login-email');
+            if (emailIn) emailIn.focus();
+        }, 150);
+    }
+}
+
+// ==================== ÖĞRENCİ KAYDI ====================
+
+async function attemptRegister() {
+    const fullName = document.getElementById('reg-fullname') ? document.getElementById('reg-fullname').value.trim() : '';
+    const email = document.getElementById('reg-email') ? document.getElementById('reg-email').value.trim().toLowerCase() : '';
+    const password = document.getElementById('reg-password') ? document.getElementById('reg-password').value : '';
+    const passwordConfirm = document.getElementById('reg-password-confirm') ? document.getElementById('reg-password-confirm').value : '';
+
+    hideLoginError();
+
+    if (!fullName || !email || !password || !passwordConfirm) {
+        showLoginError('Lütfen tüm kayıt alanlarını doldurun.');
+        shakeForm();
+        return;
+    }
+
+    if (fullName.length < 2 || fullName.length > 100 || /[<>]/.test(fullName)) {
+        showLoginError('Ad Soyad 2-100 karakter arasında olmalıdır.');
+        shakeForm();
+        return;
+    }
+
+    // Öğrenci Maili Doğrulaması: Sadece .edu.tr uzantılı üniversite maili kabul edilir (örn: kullanici@std.yildiz.edu.tr)
+    const studentEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.edu\.tr$/i;
+    if (!studentEmailRegex.test(email)) {
+        showLoginError('Yalnızca geçerli bir üniversite öğrenci e-postası ile kaydolabilirsiniz (Örn: kullanici@std.yildiz.edu.tr veya .edu.tr)');
+        shakeForm();
+        return;
+    }
+
+    if (password.length < 6) {
+        showLoginError('Şifre en az 6 karakter olmalıdır.');
+        shakeForm();
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        showLoginError('Şifreler eşleşmiyor.');
+        shakeForm();
+        return;
+    }
+
+    // E-posta mükerrerlik kontrolü
+    for (const uId in MOCK_DATA.mockUsers) {
+        if (MOCK_DATA.mockUsers[uId].email && MOCK_DATA.mockUsers[uId].email.toLowerCase() === email) {
+            showLoginError('Bu e-posta adresi ile zaten bir hesap kayıtlı. Lütfen giriş yapın.');
+            shakeForm();
+            return;
+        }
+    }
+
+    // Başarılı Kayıt — Yeni Öğrenci Hesabı Oluştur
+    const userId = 'user-std-' + Date.now();
+    const passwordHashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+    const hashedPassword = Array.from(new Uint8Array(passwordHashBuffer), byte => byte.toString(16).padStart(2, '0')).join('');
+
+    const userUni = localStorage.getItem('selectedUniversity') || 'itu';
+    const userDept = localStorage.getItem('selectedDepartment') || 'bilgisayar-muhendisligi';
+
+    const newUser = {
+        userId: userId,
+        userName: fullName,
+        email: email,
+        passwordHash: hashedPassword,
+        role: 'student',
+        universityId: userUni,
+        departmentId: userDept
+    };
+
+    MOCK_DATA.mockUsers[userId] = newUser;
+    MOCK_DATA.mockCurrentUser = userId;
+
+    if (typeof saveMockData === 'function') {
+        saveMockData();
+    }
+
+    localStorage.setItem('userType', 'student');
+    localStorage.setItem('loggedInUserId', userId);
+    localStorage.setItem('loggedInUserName', fullName);
+
+    // Misafir modunda girilmiş notlar varsa yeni kullanıcıya aktar
+    syncGuestGradesToUser(userId, userUni, userDept);
+
+    alert(`✅ Kaydınız başarıyla tamamlandı!\nHoş geldiniz, ${fullName}.`);
+    window.location.href = 'main.html';
+}
+
 // ==================== GİRİŞ DOĞRULAMA ====================
 
 async function attemptLogin() {
@@ -189,7 +323,14 @@ function shakeForm() {
 document.addEventListener('keydown', (e) => {
     const loginView = document.getElementById('login-view');
     if (loginView && loginView.style.display !== 'none') {
-        if (e.key === 'Enter') attemptLogin();
+        if (e.key === 'Enter') {
+            const registerFields = document.getElementById('register-fields');
+            if (registerFields && registerFields.style.display !== 'none') {
+                attemptRegister();
+            } else {
+                attemptLogin();
+            }
+        }
         if (e.key === 'Escape') backToCards();
     }
 });
