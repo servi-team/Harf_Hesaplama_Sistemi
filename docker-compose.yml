@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. MySQL Veritabanı Servisi
   db:
@@ -7,7 +5,7 @@ services:
     container_name: harf_hesaplama_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
       MYSQL_DATABASE: ${DB_NAME:-harf_hesaplama}
     ports:
       - "3306:3306"
@@ -30,9 +28,14 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/$${DB_NAME:-harf_hesaplama}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=false
-      - SPRING_DATASOURCE_USERNAME=$${DB_USERNAME:-root}
-      - SPRING_DATASOURCE_PASSWORD=$${DB_PASSWORD:?DB_PASSWORD must be set}
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME:-harf_hesaplama}
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-rootpassword}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DB_NAME:-harf_hesaplama}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-root}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-rootpassword}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     depends_on:
       db:
